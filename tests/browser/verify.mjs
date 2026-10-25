@@ -280,6 +280,7 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
       await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Close navigation menu");
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => !document.getElementById("mobile-navigation"));
+      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open navigation menu");
       const focusRestored = await page.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Open navigation menu");
       if (!focusRestored) results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Mobile navigation did not restore focus to its trigger." });
 
