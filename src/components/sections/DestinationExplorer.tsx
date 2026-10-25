@@ -62,7 +62,7 @@ export const DestinationExplorer: React.FC<DestinationExplorerProps> = ({ onSele
       <button type="button" onClick={() => scrollByAmount("left")} disabled={!canScrollLeft} aria-label="Scroll destinations left" className="inline-flex size-11 lg:size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
         <ChevronLeft className="size-4" aria-hidden="true" />
       </button>
-      <button type="button" onClick={() => scrollByAmount("right")} disabled={!canScrollRight} aria-label="Scroll destinations right" className="inline-flex size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
+      <button type="button" onClick={() => scrollByAmount("right")} disabled={!canScrollRight} aria-label="Scroll destinations right" className="inline-flex size-11 lg:size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
         <ChevronRight className="size-4" aria-hidden="true" />
       </button>
     </div>
