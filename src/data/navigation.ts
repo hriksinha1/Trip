@@ -22,6 +22,7 @@ export const exploreLinks = [
 
 export const supportLinks = [
   { label: "FAQs", href: "#faq" },
-  { label: "Plan my trip", href: "#plan" },
   { label: "Contact", href: "#contact" },
+  { label: "Terms & Conditions", href: "#terms" },
+  { label: "Privacy Policy", href: "#privacy" },
 ];
