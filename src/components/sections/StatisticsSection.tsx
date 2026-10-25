@@ -24,7 +24,7 @@ export const StatisticsSection: React.FC = () => {
               {statsFacts.map((fact, index) => {
                 const Icon = featureIcons[index] ?? Compass;
                 return (
-                  <article key={fact.id} className="flex gap-4 py-5 first:pt-0 last:pb-0 md:flex-col md:items-start md:px-6 md:py-2 md:first:pt-2 md:last:pb-2 md:first:pl-0 md:last:pr-0">
+                  <article key={fact.id} className="flex gap-4 border-b border-white/25 py-5 last:border-b-0 first:pt-0 last:pb-0 md:flex-col md:items-start md:border-b-0 md:px-6 md:py-2 md:first:pt-2 md:last:pb-2 md:first:pl-0 md:last:pr-0">
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/60 text-white" aria-hidden="true">
                       <Icon size={18} strokeWidth={1.7} />
                     </div>
