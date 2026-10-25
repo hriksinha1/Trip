@@ -1,64 +1,51 @@
 import React from "react";
+import { ArrowRight } from "lucide-react";
 import { SmartImage } from "../ui/SmartImage";
+import { Button } from "../ui/Button";
+
+const collage = [
+  { id: "dest_coorg", label: "Coorg", className: "row-span-2 aspect-[4/5]" },
+  { id: "dest_gokarna", label: "Gokarna", className: "aspect-[4/3]" },
+  { id: "dest_chikmagalur", label: "Chikmagalur", className: "aspect-[4/3]" },
+];
 
 export const BrandStatement: React.FC = () => {
-  // Aliases existing destination image keys for regional thumbnail cluster
-  const destinationThumbnails = ["dest_goa", "dest_coorg", "dest_chikmagalur", "dest_gokarna"];
-
   return (
-    <section
-      id="about"
-      aria-labelledby="brand-statement-heading"
-      className="w-full py-20 sm:py-28 select-none overflow-hidden"
-    >
-      <div
-        data-shell
-        className="shell relative min-h-[50vh] md:min-h-[60vh] flex flex-col justify-center items-center text-center px-4"
-      >
-        {/* Subtle background ambient blur constrained to prevent horizontal viewport overflow */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,100%)] h-[300px] bg-neutral-200/40 rounded-full blur-3xl pointer-events-none -z-10"
-          aria-hidden="true"
-        />
-
-        {/* Eyebrow */}
-        <span className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-widest font-sans mb-4 sm:mb-6">
-          Travel made simple
-        </span>
-
-        {/* Big Display H2 Statement */}
-        <h2
-          id="brand-statement-heading"
-          className="font-display text-3xl sm:text-5xl md:text-6xl font-medium tracking-tight text-[#151515] leading-[1.08] sm:leading-[1.1] max-w-[18ch]"
-          style={{ textWrap: "balance" }}
-        >
-          Less planning stress. More stories worth telling.
-        </h2>
-
-        {/* Destination Thumbnail Cluster & Editorial Caption */}
-        <div className="mt-10 sm:mt-14 flex flex-col items-center">
-          {/* 4 Overlapping Destination Thumbnails (no stock portrait faces) */}
-          <div className="flex items-center justify-center -space-x-3 mb-4">
-            {destinationThumbnails.map((thumbId, index) => (
-              <div
-                key={thumbId}
-                className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-2 ring-white overflow-hidden shadow-xs shrink-0"
-                style={{ zIndex: 10 - index }}
-              >
-                <SmartImage
-                  imageId={thumbId}
-                  alt=""
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Caption */}
-          <p className="text-sm text-neutral-600 max-w-[44ch] leading-relaxed font-sans">
+    <section id="about" aria-labelledby="brand-statement-heading" className="section w-full">
+      <div data-shell className="shell grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-center gap-8 md:gap-10 lg:gap-[clamp(32px,4vw,72px)]">
+        <div className="flex flex-col items-start text-left">
+          <span className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-[0.16em] font-sans mb-3">
+            Travel made simple
+          </span>
+          <h2
+            id="brand-statement-heading"
+            className="font-display text-[clamp(2.25rem,1.2rem+2.8vw,3.75rem)] font-medium tracking-tight text-[#151515] leading-[1.04] max-w-[15ch]"
+            style={{ textWrap: "balance" }}
+          >
+            Less planning stress. More stories worth telling.
+          </h2>
+          <p className="mt-5 text-[16px] sm:text-[17px] text-neutral-600 max-w-[62ch] leading-relaxed font-sans">
             Beach breaks, hill escapes and heritage trails across India, shaped around how you like to travel.
           </p>
+          <div className="mt-7 flex flex-wrap items-center gap-4">
+            <Button variant="primary" size="md" onClick={() => document.getElementById("plan")?.scrollIntoView({ behavior: "smooth" })}>
+              Plan my trip
+            </Button>
+            <a href="#destinations" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#151515] underline underline-offset-4 decoration-neutral-300 hover:decoration-[#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] focus-visible:ring-offset-4 rounded-sm">
+              Explore destinations <ArrowRight size={16} aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3 min-w-0">
+          {collage.map((photo) => (
+            <figure key={photo.id} className={`relative min-w-0 overflow-hidden rounded-[var(--radius-card)] bg-[#E8E6E0] shadow-soft ${photo.className}`}>
+              <SmartImage imageId={photo.id} alt={photo.label + " travel landscape in India"} fill className="object-cover" />
+              <figcaption className="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                {photo.label}
+              </figcaption>
+            </figure>
+          ))}
         </div>
       </div>
     </section>
