@@ -9,40 +9,26 @@ interface FAQSectionProps {
 }
 
 export const FAQSection: React.FC<FAQSectionProps> = ({ onPlanTripClick }) => {
-  // First item open by default
   const [openId, setOpenId] = useState<string>("faq-1");
-
-  const toggleItem = (id: string) => {
-    setOpenId((prev) => (prev === id ? "" : id));
-  };
+  const toggleItem = (id: string) => setOpenId((previous) => previous === id ? "" : id);
 
   return (
-    <section
-      id="faq"
-      aria-labelledby="faq-section-heading"
-      className="w-full py-16 sm:py-24 scroll-mt-20"
-    >
+    <section id="faq" aria-labelledby="faq-section-heading" className="section w-full scroll-mt-20">
       <div data-shell className="shell">
-        {/* Section Heading */}
         <SectionHeading
           id="faq-section-heading"
-          title="Frequently Asked Questions"
+          title="Frequently asked questions"
           subtitle="Answers to common questions about planning a trip with Starttrips."
-          className="mb-10 sm:mb-14"
+          className="section-heading-gap"
         />
 
-        {/* Accordion Container (constrained to --text-max) */}
-        <div className="max-w-[var(--text-max)] mx-auto space-y-3 sm:space-y-3.5">
+        <div className="mx-auto max-w-[var(--text-max)] space-y-3">
           {faqs.map((item: FAQItem) => {
             const isOpen = openId === item.id;
             const buttonId = `faq-btn-${item.id}`;
             const panelId = `faq-panel-${item.id}`;
-
             return (
-              <div
-                key={item.id}
-                className="bg-white rounded-[14px] border border-[#E8E6E0] shadow-soft overflow-hidden transition-colors"
-              >
+              <article key={item.id} className="overflow-hidden rounded-[14px] border border-[#E8E6E0] bg-white shadow-soft transition-colors">
                 <h3>
                   <button
                     id={buttonId}
@@ -50,56 +36,29 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ onPlanTripClick }) => {
                     aria-expanded={isOpen}
                     aria-controls={panelId}
                     onClick={() => toggleItem(item.id)}
-                    className="w-full flex items-center justify-between p-5 sm:p-6 text-left gap-4 font-display font-medium text-base sm:text-lg text-[#151515] hover:bg-neutral-50/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] focus-visible:ring-inset"
+                    className="flex min-h-14 w-full items-center justify-between gap-4 p-4 sm:px-5 sm:py-4 text-left font-display text-[16px] sm:text-[17px] font-medium text-[#151515] transition-colors hover:bg-neutral-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] focus-visible:ring-inset"
                   >
                     <span className="leading-snug">{item.question}</span>
-
-                    {/* Right-aligned icon indicator */}
-                    <span
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 ${
-                        isOpen
-                          ? "bg-[#151515] text-white"
-                          : "bg-neutral-100 text-neutral-500 hover:text-neutral-900"
-                      }`}
-                    >
-                      {isOpen ? (
-                        <Minus className="w-3.5 h-3.5" aria-hidden="true" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" aria-hidden="true" />
-                      )}
+                    <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors ${isOpen ? "bg-[#151515] text-white" : "bg-neutral-100 text-neutral-600"}`}>
+                      {isOpen ? <Minus className="size-4" aria-hidden="true" /> : <ChevronDown className="size-4" aria-hidden="true" />}
                     </span>
                   </button>
                 </h3>
-
-                {/* Collapsible Answer Region with Smooth Height */}
-                <div
-                  id={panelId}
-                  role="region"
-                  aria-labelledby={buttonId}
-                  className={`grid transition-[grid-template-rows] duration-250 ease-out ${
-                    isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                  }`}
-                >
+                <div id={panelId} role="region" aria-labelledby={buttonId} className={`grid transition-[grid-template-rows] duration-200 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                   <div className="overflow-hidden">
-                    <p className="px-5 sm:px-6 pb-5 sm:pb-6 text-sm text-neutral-600 leading-relaxed font-sans border-t border-neutral-100/60 pt-3">
+                    <p className="border-t border-neutral-100 px-4 pb-4 pt-3 text-[15px] leading-relaxed text-neutral-600 sm:px-5">
                       {item.answer}
                     </p>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
 
-        {/* Action Button Below */}
-        <div className="mt-10 sm:mt-12 flex justify-center">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={onPlanTripClick}
-            className="px-6 py-2.5 font-semibold text-xs sm:text-sm shadow-md"
-          >
-            Still have a question? Plan my trip
+        <div className="mt-6 sm:mt-8 flex justify-center">
+          <Button variant="primary" size="md" onClick={onPlanTripClick}>
+            Plan my trip
           </Button>
         </div>
       </div>
