@@ -300,7 +300,16 @@ try {
   console.log("\n=== Starttrips browser verification ===");
   console.log(JSON.stringify(report.summary, null, 2));
 
-  if (Object.values(report.summary).some((value) => value > 0)) {
+  const failureKeys = [
+    "horizontalOverflowFailures",
+    "shellAlignmentFailures",
+    "brokenImages",
+    "failedImageResponses",
+    "runtimeErrors",
+    "interactionFailures",
+  ];
+  const hasFailures = failureKeys.some((key) => report.summary[key] > 0);
+  if (hasFailures) {
     console.error("✗ Browser verification failed. Review docs/REDESIGN_METRICS.json and docs/screenshots/after/.");
     process.exitCode = 1;
   } else {
