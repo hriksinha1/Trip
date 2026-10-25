@@ -73,8 +73,8 @@ const baseImages: Record<string, Omit<ImageItem, "status" | "src" | "srcSet" | "
   },
   stats_ocean: {
     id: "stats_ocean",
-    label: "Indian Coastal Waters & Backwaters",
-    alt: "Aerial top-down view of turquoise coastal waters and green shorelines in South India",
+    label: "Kerala Backwaters",
+    alt: "A Kerala backwater channel lined with waterside homes, palms and tropical greenery",
     objectPosition: "center center",
     fallback: "linear-gradient(145deg, #064e3b 0%, #0f766e 50%, #115e59 100%)",
     accent: "#064e3b",
