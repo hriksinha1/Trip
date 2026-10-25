@@ -59,8 +59,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
 
   return (
     <>
-      <footer id="contact" aria-label="Starttrips footer" data-shell className="shell rounded-b-[var(--radius-block)] bg-[#0E0E0E] px-5 py-8 text-white sm:px-8 sm:py-10 lg:px-10">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 border-b border-white/10 pb-8 sm:gap-x-8 sm:gap-y-9 lg:grid-cols-[1.4fr_1fr_1fr_1.6fr] lg:gap-10 lg:pb-10">
+      <footer id="contact" aria-label="Starttrips footer" data-shell className="shell rounded-b-[var(--radius-block)] bg-[#0E0E0E] px-5 py-6 text-white sm:px-8 sm:py-10 lg:px-10">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 border-b border-white/10 pb-6 sm:gap-x-8 sm:gap-y-9 lg:grid-cols-[1.4fr_1fr_1fr_1.6fr] lg:gap-10 lg:pb-10">
           <div className="col-span-2 flex flex-col items-start gap-3 lg:col-span-1">
             <a href="#home" aria-label="Starttrips home"><Logo theme="light" /></a>
             <p className="max-w-[34ch] text-[14px] leading-relaxed text-[#B3B3B3]">
@@ -77,7 +77,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
             <h3 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-white">Explore</h3>
             <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
               {exploreLinks.map((item) => (
-                <li key={item.href}>
+                <li key={item.href} className={item.label === "Terms & Conditions" || item.label === "Privacy Policy" ? "hidden lg:block" : ""}>
                   <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
                 </li>
               ))}
@@ -120,7 +120,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4 pt-6 text-center text-[13px] text-[#A6A6A6] sm:flex-row sm:justify-between sm:text-left">
+        <div className="flex flex-col items-center gap-4 pt-4 text-center text-[13px] text-[#A6A6A6] sm:flex-row sm:justify-between sm:text-left">
           <p>© {currentYear} Starttrips. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <button type="button" onClick={() => onOpenLegalDialog("terms")} className="min-h-11 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Terms</button>
