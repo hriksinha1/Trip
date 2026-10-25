@@ -77,7 +77,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
             <h3 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-white">Explore</h3>
             <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
               {exploreLinks.map((item) => (
-                <li key={item.href} className={item.label === "Terms & Conditions" || item.label === "Privacy Policy" ? "hidden lg:block" : ""}>
+                <li key={item.href} >
                   <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
                 </li>
               ))}
@@ -87,7 +87,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
           <nav aria-label="Support" className="min-w-0">
             <h3 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-white">Support</h3>
             <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
-              {supportLinks.map((item) => (
+              {supportLinks.filter((item) => item.label !== "Terms & Conditions" && item.label !== "Privacy Policy").map((item) => (
                 <li key={item.href}>
                   {item.label === "Terms & Conditions" ? (
                     <button type="button" onClick={() => onOpenLegalDialog("terms")} className="inline-flex min-h-11 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
@@ -108,14 +108,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
             </p>
             <div className="mt-4 grid gap-2.5">
               <Button variant="onPhoto" size="md" onClick={onPlanTripClick} className="w-full font-semibold">Plan my trip</Button>
-              <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                Message us on Instagram
-              </a>
-              {site.whatsappNumber && (
-                <a href={`https://wa.me/${site.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  Chat on WhatsApp
-                </a>
-              )}
+              <p className="text-center text-xs leading-relaxed text-[#B3B3B3]">
+                Find our official social and contact links in this footer.
+              </p>
             </div>
           </div>
         </div>
