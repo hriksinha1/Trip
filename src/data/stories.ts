@@ -7,11 +7,12 @@ export interface EditorialStory {
   offsetDesktop: string;
 }
 
+// Editorial destination inspiration; these are not customer testimonials.
 export const editorialStories: EditorialStory[] = [
   {
     id: "exp-gokarna",
-    place: "Om Beach, Gokarna",
-    caption: "A crescent-shaped bay with calm mornings and golden evenings.",
+    place: "Gokarna coast",
+    caption: "Rocky shoreline, low waves and warm evening light on Karnataka's coast.",
     imageId: "story_gokarna_om",
     rotationDesktop: "-rotate-3",
     offsetDesktop: "translate-y-2",
@@ -19,31 +20,23 @@ export const editorialStories: EditorialStory[] = [
   {
     id: "exp-coorg",
     place: "Abbey Falls, Coorg",
-    caption: "A short walk through coffee and spice estates leads to the falls.",
+    caption: "A short walk through green plantation country leads to a powerful waterfall.",
     imageId: "story_coorg_falls",
     rotationDesktop: "rotate-2",
     offsetDesktop: "-translate-y-1",
   },
   {
-    id: "exp-chikmagalur",
-    place: "Mullayanagiri, Chikmagalur",
-    caption: "Karnataka's highest peak, made for early starts and big views.",
-    imageId: "story_chikmagalur_peak",
-    rotationDesktop: "-rotate-1",
-    offsetDesktop: "translate-y-1",
-  },
-  {
     id: "exp-hyderabad",
     place: "Charminar, Hyderabad",
-    caption: "A 16th-century landmark with the old city's bazaars on its doorstep.",
+    caption: "A landmark from the old city, surrounded by Hyderabad's lively streets.",
     imageId: "story_hyderabad_charminar",
     rotationDesktop: "rotate-3",
     offsetDesktop: "-translate-y-2",
   },
   {
     id: "exp-goa",
-    place: "Agonda Beach, Goa",
-    caption: "A quieter stretch of South Goa's coast.",
+    place: "Goa rocky shoreline",
+    caption: "Evening light over the coast, with rocks and calm water in the foreground.",
     imageId: "story_goa_beach",
     rotationDesktop: "-rotate-2",
     offsetDesktop: "translate-y-3",
