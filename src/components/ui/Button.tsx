@@ -24,6 +24,7 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   className = "",
   disabled,
+  type = "button",
   ...props
 }) => {
   const baseStyles = "inline-flex min-w-24 items-center justify-center gap-2 rounded-full text-center font-medium whitespace-nowrap select-none transition-colors duration-200 active:scale-[.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
@@ -68,12 +69,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      type="button"
+      type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
       {...props}
-      type={props.type ?? "button"}
     >
       {content}
     </button>
