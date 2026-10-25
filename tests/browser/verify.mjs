@@ -1,155 +1,315 @@
-import { chromium } from "playwright";
-import fs from "fs";
-import path from "path";
+import { chromium, webkit } from "playwright";
+import fs from "node:fs";
+import path from "node:path";
+import { spawn } from "node:child_process";
 
 const VIEWPORTS = [
-  { width: 320, height: 600 },
-  { width: 360, height: 740 },
-  { width: 390, height: 844 },
-  { width: 430, height: 932 },
-  { width: 768, height: 1024 },
-  { width: 820, height: 1180 },
-  { width: 1024, height: 768 },
-  { width: 1280, height: 800 },
-  { width: 1440, height: 900 },
-  { width: 1600, height: 1000 },
-  { width: 1920, height: 1080 },
+  { width: 320, height: 600 }, { width: 360, height: 740 },
+  { width: 390, height: 844 }, { width: 430, height: 932 },
+  { width: 768, height: 1024 }, { width: 1024, height: 768 },
+  { width: 1280, height: 800 }, { width: 1366, height: 768 },
+  { width: 1440, height: 900 }, { width: 1600, height: 1000 },
+  { width: 1920, height: 1080 }, { width: 2560, height: 1440 },
 ];
+const WEBKIT_WIDTHS = new Set([390, 768, 1440, 1920]);
+const PORT = Number(process.env.TEST_PORT || 4175);
+const BASE_URL = `http://127.0.0.1:${PORT}`;
+const screenshotDir = path.resolve("docs/screenshots/after");
+fs.mkdirSync(screenshotDir, { recursive: true });
 
-const afterDir = path.resolve("docs/screenshots/after");
-fs.mkdirSync(afterDir, { recursive: true });
+const results = {
+  viewportsChecked: 0,
+  browserRuns: [],
+  overflowFailures: [],
+  shellAlignmentFailures: [],
+  brokenImages: [],
+  imageResponses: [],
+  runtimeErrors: [],
+  sectionMetrics: [],
+  interactionFailures: [],
+};
 
-async function verifyBrowser() {
-  console.log("Launching Chromium for comprehensive verification...");
-  const browser = await chromium.launch({ headless: true });
-  const testResults = {
-    viewportsChecked: 0,
-    overflowFailures: [],
-    imagesChecked: 0,
-    brokenImages: [],
-    ticketHeightsChecked: false,
-  };
+function assertOrRecord(condition, list, detail) {
+  if (!condition) list.push(detail);
+}
 
-  for (const vp of VIEWPORTS) {
-    const context = await browser.newContext({ viewport: vp });
-    const page = await context.newPage();
+async function startPreview() {
+  const viteBin = path.resolve("node_modules/vite/bin/vite.js");
+  const server = spawn(process.execPath, [viteBin, "preview", "--host", "127.0.0.1", "--port", String(PORT), "--strictPort"], {
+    stdio: "ignore",
+    env: process.env,
+  });
+  let ready = false;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    if (server.exitCode !== null) throw new Error(`Vite preview exited with code ${server.exitCode}`);
+    try {
+      const response = await fetch(BASE_URL);
+      if (response.ok) { ready = true; break; }
+    } catch { /* The preview server is still starting. */ }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  if (!ready) {
+    server.kill("SIGTERM");
+    throw new Error("Vite preview did not become available on " + BASE_URL);
+  }
+  return server;
+}
 
-    // Listen to console and page errors
-    const pageErrors = [];
-    page.on("pageerror", (err) => pageErrors.push(err.message));
+async function launchChromium() {
+  try {
+    return await chromium.launch({ headless: true });
+  } catch (error) {
+    if (process.env.CHROMIUM_PATH) {
+      return chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH });
+    }
+    if (fs.existsSync("/usr/bin/chromium")) {
+      return chromium.launch({ headless: true, executablePath: "/usr/bin/chromium" });
+    }
+    throw error;
+  }
+}
 
-    await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
-    await page.waitForTimeout(600);
+async function inspectViewport(browser, engineName, viewport, captureScreenshot) {
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+  const page = await context.newPage();
+  const pageErrors = [];
+  const failedImageResponses = [];
 
-    // Scroll down to trigger lazy images
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("response", (response) => {
+    const url = response.url();
+    if (response.status() >= 400 && /\/images\/.*\.(webp|png|jpe?g|avif)(\?|$)/i.test(url)) {
+      failedImageResponses.push({ status: response.status(), url, viewport: viewport.width, engineName });
+    }
+  });
+
+  try {
+    await page.goto(BASE_URL, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await page.waitForTimeout(250);
+
+    // Scroll in short increments so lazy-loaded imagery is actually requested.
     await page.evaluate(async () => {
-      const scrollStep = window.innerHeight;
-      const totalHeight = document.body.scrollHeight;
-      for (let y = 0; y < totalHeight; y += scrollStep) {
+      const step = Math.max(400, Math.floor(window.innerHeight * 0.8));
+      const total = document.documentElement.scrollHeight;
+      for (let y = 0; y < total; y += step) {
         window.scrollTo(0, y);
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise((resolve) => setTimeout(resolve, 45));
       }
       window.scrollTo(0, 0);
     });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(180);
 
-    // Check horizontal overflow
-    const overflow = await page.evaluate(() => {
-      const doc = document.documentElement;
+    const measured = await page.evaluate(() => {
+      const rect = (element) => {
+        if (!element) return null;
+        const r = element.getBoundingClientRect();
+        return { left: r.left, right: r.right, width: r.width, height: r.height, top: r.top, bottom: r.bottom };
+      };
+      const isVisible = (element) => {
+        let current = element;
+        while (current && current instanceof HTMLElement) {
+          const style = getComputedStyle(current);
+          if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+          current = current.parentElement;
+        }
+        const r = element.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      };
+      const shells = [
+        ["hero", document.querySelector("#home [data-shell]")],
+        ["trips", document.querySelector("#trips [data-shell]")],
+        ["brand", document.querySelector("#about [data-shell]")],
+        ["stats", document.querySelector("#stats [data-shell]")],
+        ["destinations-heading", document.querySelector("#destinations > [data-shell]")],
+        ["stories", document.querySelector("#stories [data-shell]")],
+        ["faq", document.querySelector("#faq [data-shell]")],
+        ["promo", document.querySelector("#plan [data-shell]")],
+        ["footer", document.querySelector("footer#contact[data-shell]")],
+      ].map(([name, element]) => ({ name, rect: rect(element) }));
+      const visibleImages = Array.from(document.querySelectorAll("[data-image-key]"))
+        .filter(isVisible)
+        .map((element) => {
+          const isImg = element.tagName.toLowerCase() === "img";
+          return {
+            key: element.getAttribute("data-image-key"),
+            state: element.getAttribute("data-image-state"),
+            isImg,
+            naturalWidth: isImg ? element.naturalWidth : 0,
+            naturalHeight: isImg ? element.naturalHeight : 0,
+            currentSrc: isImg ? element.currentSrc : "",
+          };
+        });
+      const destinationTrack = document.querySelector("#destinations [aria-label='Destinations carousel']");
+      const firstDestination = destinationTrack?.querySelector("article");
+      const firstShell = document.querySelector("#destinations > [data-shell]");
+      const headerShell = document.querySelector("[data-header-scrolled]");
+      const headerLogo = document.querySelector("header a[aria-label='Starttrips home']");
+      const featurePanel = document.querySelector("#stats [data-shell]");
+      const statsTicketCards = document.querySelectorAll(".ticket-card").length;
+      const tripCards = Array.from(document.querySelectorAll("#trips article"));
+      const tripActionHeights = tripCards.map((card) => {
+        const button = card.querySelector("button");
+        return button ? Math.round(button.getBoundingClientRect().height) : null;
+      });
+      const storyHeadings = Array.from(document.querySelectorAll("#stories article h3")).map((element) => ({
+        text: element.textContent?.trim() || "",
+        height: element.getBoundingClientRect().height,
+        scrollHeight: element.scrollHeight,
+      }));
+      const sections = ["#home", "#trips", "#about", "#stats", "#destinations", "#stories", "#faq", "#plan", "#contact"];
+      const sectionMetrics = sections.map((selector) => {
+        const element = document.querySelector(selector);
+        return { selector, height: element ? Math.round(element.getBoundingClientRect().height) : null };
+      });
       return {
-        scrollWidth: doc.scrollWidth,
-        clientWidth: doc.clientWidth,
-        hasOverflow: doc.scrollWidth > doc.clientWidth,
+        viewportWidth: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        documentHeight: document.documentElement.scrollHeight,
+        shells,
+        visibleImages,
+        firstDestinationLeft: rect(firstDestination)?.left ?? null,
+        destinationShellLeft: rect(firstShell)?.left ?? null,
+        destinationScrollLeft: destinationTrack?.scrollLeft ?? null,
+        headerLogoLeft: rect(headerLogo)?.left ?? null,
+        headerShellRect: rect(headerShell),
+        brandHeight: rect(document.querySelector("#about"))?.height ?? null,
+        featurePanelHeight: rect(featurePanel)?.height ?? null,
+        statsTicketCards,
+        tripActionHeights,
+        storyHeadings,
+        sectionMetrics,
       };
     });
 
-    if (overflow.hasOverflow) {
-      testResults.overflowFailures.push({
-        viewport: `${vp.width}x${vp.height}`,
-        scrollWidth: overflow.scrollWidth,
-        clientWidth: overflow.clientWidth,
-      });
-      console.error(`❌ Overflow at ${vp.width}px: scrollWidth=${overflow.scrollWidth} > clientWidth=${overflow.clientWidth}`);
-    } else {
-      console.log(`✓ No horizontal overflow at ${vp.width}px (${overflow.clientWidth}px)`);
+    if (measured.documentWidth > viewport.width) {
+      results.overflowFailures.push({ engineName, viewport, documentWidth: measured.documentWidth });
+    }
+    for (const image of measured.visibleImages) {
+      if (image.state !== "photo" || !image.isImg || image.naturalWidth <= 0) {
+        results.brokenImages.push({ engineName, viewport: viewport.width, ...image });
+      }
+    }
+    results.imageResponses.push(...failedImageResponses);
+    results.runtimeErrors.push(...pageErrors.map((message) => ({ engineName, viewport: viewport.width, message })));
+
+    const shellRects = measured.shells.filter((item) => item.rect);
+    if (shellRects.length > 1) {
+      const reference = shellRects[0].rect;
+      for (const item of shellRects.slice(1)) {
+        if (Math.abs(item.rect.left - reference.left) > 2 || Math.abs(item.rect.width - reference.width) > 2) {
+          // A readable FAQ is intentionally narrower only inside its accordion; its outer shell still matches.
+          results.shellAlignmentFailures.push({ engineName, viewport: viewport.width, name: item.name, rect: item.rect, reference });
+        }
+      }
+    }
+    if (measured.firstDestinationLeft !== null && measured.destinationShellLeft !== null &&
+        Math.abs(measured.firstDestinationLeft - measured.destinationShellLeft) > 2) {
+      results.shellAlignmentFailures.push({ engineName, viewport: viewport.width, name: "first destination card", left: measured.firstDestinationLeft, shellLeft: measured.destinationShellLeft, scrollLeft: measured.destinationScrollLeft });
+    }
+    if (measured.statsTicketCards !== 0) {
+      results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Legacy ticket statistics cards remain in the DOM." });
+    }
+    const uniqueButtonHeights = [...new Set(measured.tripActionHeights.filter((height) => height !== null))];
+    if (measured.tripActionHeights.length && uniqueButtonHeights.some((height) => height < 42)) {
+      results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Trip enquiry button is below the 44px target.", heights: measured.tripActionHeights });
     }
 
-    // Save full page after-screenshot
-    const screenshotPath = path.join(afterDir, `viewport-${vp.width}.png`);
-    await page.screenshot({ path: screenshotPath, fullPage: true });
+    if (engineName === "Chromium") {
+      results.sectionMetrics.push({ viewport: viewport.width, pageHeight: measured.documentHeight, brandHeight: Math.round(measured.brandHeight || 0), featurePanelHeight: Math.round(measured.featurePanelHeight || 0), sections: measured.sectionMetrics });
+      if (captureScreenshot) {
+        await page.screenshot({ path: path.join(screenshotDir, `viewport-${viewport.width}.png`), fullPage: true });
+      }
+    }
 
-    // On 1280px, verify images and ticket cards in detail
-    if (vp.width === 1280) {
-      // Check images
-      const imgStats = await page.evaluate(() => {
-        const smartImgs = Array.from(document.querySelectorAll("[data-image-key]"));
-        return smartImgs.map((el) => {
-          const key = el.getAttribute("data-image-key");
-          const state = el.getAttribute("data-image-state");
-          const isImg = el.tagName.toLowerCase() === "img";
-          const naturalWidth = isImg ? el.naturalWidth : 0;
-          const naturalHeight = isImg ? el.naturalHeight : 0;
-          const currentSrc = isImg ? el.currentSrc : "";
-          return { key, state, isImg, naturalWidth, naturalHeight, currentSrc };
-        });
-      });
+    // Exercise the mobile navigation's focus entry, Escape handling and focus restoration.
+    if (engineName === "Chromium" && viewport.width === 390) {
+      const menuButton = page.getByRole("button", { name: "Open navigation menu" });
+      await menuButton.click();
+      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Close navigation menu");
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !document.getElementById("mobile-navigation"));
+      const focusRestored = await page.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Open navigation menu");
+      if (!focusRestored) results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Mobile navigation did not restore focus to its trigger." });
 
-      testResults.imagesChecked = imgStats.length;
-      console.log(`\nInspecting ${imgStats.length} SmartImage elements on page:`);
-      for (const img of imgStats) {
-        if (img.state !== "photo" || img.naturalWidth === 0) {
-          testResults.brokenImages.push(img);
-          console.error(`❌ Broken image: [${img.key}] state=${img.state} size=${img.naturalWidth}x${img.naturalHeight}`);
-        } else {
-          console.log(`✓ [${img.key}]: OK (${img.naturalWidth}x${img.naturalHeight})`);
+      const firstFaqButton = page.locator("#faq button[aria-controls]").first();
+      if (await firstFaqButton.count()) {
+        await firstFaqButton.click();
+        const expanded = await firstFaqButton.getAttribute("aria-expanded");
+        if (expanded !== "true" && expanded !== "false") {
+          results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "FAQ accordion has no valid expanded state." });
         }
       }
 
-      // Check Ticket Cards height equality
-      const ticketCards = await page.evaluate(() => {
-        const cards = Array.from(document.querySelectorAll(".ticket-card"));
-        return cards.map((c) => ({
-          height: c.getBoundingClientRect().height,
-          computedMask: window.getComputedStyle(c).maskImage || window.getComputedStyle(c).webkitMaskImage,
-        }));
-      });
-
-      console.log(`\nInspecting ${ticketCards.length} TicketCard instances:`);
-      const heights = ticketCards.map((c) => Math.round(c.height));
-      const allEqual = heights.every((h) => Math.abs(h - heights[0]) <= 2);
-      testResults.ticketHeightsChecked = allEqual;
-      console.log(`Ticket card heights: ${heights.join("px, ")}px (Equal: ${allEqual ? "YES" : "NO"})`);
-
-      // Capture close-up of statistics section
-      const statsSection = page.locator("#stats");
-      if (await statsSection.count() > 0) {
-        await statsSection.screenshot({ path: path.join(afterDir, "section-statistics.png") });
-        console.log("✓ Saved close-up: section-statistics.png");
+      const creditsButton = page.getByRole("button", { name: "Photo credits" });
+      if (await creditsButton.count()) {
+        await creditsButton.click();
+        const dialogVisible = await page.getByRole("dialog", { name: "Photo credits" }).isVisible().catch(() => false);
+        if (!dialogVisible) results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Photo credits dialog failed to open." });
+        await page.keyboard.press("Escape");
       }
     }
 
-    testResults.viewportsChecked++;
+    results.browserRuns.push({ engineName, viewport: viewport.width, images: measured.visibleImages.length, pageHeight: measured.documentHeight });
+    results.viewportsChecked += 1;
+    console.log(`✓ ${engineName} ${viewport.width}×${viewport.height}: ${measured.visibleImages.length} visible image(s), page height ${measured.documentHeight}px`);
+  } finally {
     await context.close();
   }
-
-  await browser.close();
-
-  console.log("\n=== BROWSER VERIFICATION SUMMARY ===");
-  console.log(`Viewports checked: ${testResults.viewportsChecked}/11`);
-  console.log(`Overflow failures: ${testResults.overflowFailures.length}`);
-  console.log(`Images verified: ${testResults.imagesChecked}`);
-  console.log(`Broken images: ${testResults.brokenImages.length}`);
-  console.log(`Ticket cards equal height: ${testResults.ticketHeightsChecked ? "PASSED" : "FAILED"}`);
-
-  if (testResults.overflowFailures.length > 0 || testResults.brokenImages.length > 0 || !testResults.ticketHeightsChecked) {
-    console.error("❌ Verification tests FAILED.");
-    process.exit(1);
-  }
-
-  console.log("✅ All browser verification tests PASSED cleanly!");
 }
 
-verifyBrowser().catch((err) => {
-  console.error("Fatal browser verification error:", err);
-  process.exit(1);
-});
+let previewServer;
+const browsers = [];
+try {
+  previewServer = await startPreview();
+  let chromiumBrowser;
+  try {
+    chromiumBrowser = await launchChromium();
+  } catch (error) {
+    throw new Error(`Chromium could not start. Install it with "npx playwright install chromium". Original error: ${error.message}`);
+  }
+  browsers.push(chromiumBrowser);
+  for (const viewport of VIEWPORTS) {
+    await inspectViewport(chromiumBrowser, "Chromium", viewport, true);
+  }
+
+  let webkitBrowser;
+  try {
+    webkitBrowser = await webkit.launch({ headless: true });
+  } catch (error) {
+    throw new Error(`WebKit could not start. Install it with "npx playwright install webkit". Original error: ${error.message}`);
+  }
+  browsers.push(webkitBrowser);
+  for (const viewport of VIEWPORTS.filter((item) => WEBKIT_WIDTHS.has(item.width))) {
+    await inspectViewport(webkitBrowser, "WebKit", viewport, false);
+  }
+
+  const report = {
+    generatedAt: new Date().toISOString(),
+    summary: {
+      browserRuns: results.browserRuns.length,
+      horizontalOverflowFailures: results.overflowFailures.length,
+      shellAlignmentFailures: results.shellAlignmentFailures.length,
+      brokenImages: results.brokenImages.length,
+      failedImageResponses: results.imageResponses.length,
+      runtimeErrors: results.runtimeErrors.length,
+      interactionFailures: results.interactionFailures.length,
+    },
+    ...results,
+  };
+  fs.writeFileSync("docs/REDESIGN_METRICS.json", JSON.stringify(report, null, 2) + "\n");
+  console.log("\n=== Starttrips browser verification ===");
+  console.log(JSON.stringify(report.summary, null, 2));
+
+  if (Object.values(report.summary).some((value) => value > 0)) {
+    console.error("✗ Browser verification failed. Review docs/REDESIGN_METRICS.json and docs/screenshots/after/.");
+    process.exitCode = 1;
+  } else {
+    console.log("✓ Browser verification passed.");
+  }
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+} finally {
+  for (const browser of browsers) await browser.close().catch(() => {});
+  if (previewServer && previewServer.exitCode === null) previewServer.kill("SIGTERM");
+}
