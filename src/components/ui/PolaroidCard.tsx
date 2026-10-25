@@ -19,32 +19,18 @@ export const PolaroidCard: React.FC<PolaroidCardProps> = ({
   className = "",
 }) => {
   return (
-    <div
-      className={`group relative bg-white p-2.5 sm:p-3 pb-5 sm:pb-6 rounded-md transition-all duration-300 ease-out shadow-polaroid hover:shadow-xl hover:-translate-y-2 hover:rotate-0 hover:z-20 cursor-default select-none border border-neutral-100/80 ${rotationDesktop} ${offsetDesktop} ${className}`}
-    >
-      {/* Photo Frame (4:5 aspect ratio) */}
+    <article className={`group relative min-w-0 bg-white p-2.5 sm:p-3 pb-5 sm:pb-6 rounded-md transition-transform duration-300 ease-out shadow-polaroid border border-neutral-100/80 ${rotationDesktop} ${offsetDesktop} ${className}`}>
       <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xs bg-neutral-100">
-        <SmartImage
-          imageId={imageId}
-          fill
-          className="transition-transform duration-500 ease-out group-hover:scale-105"
-        />
+        <SmartImage imageId={imageId} fill className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
       </div>
-
-      {/* Caption Area (Editorial, no quotation marks) */}
       <div className="pt-3.5 sm:pt-4 px-1 text-left">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <h3 className="font-display text-sm sm:text-base font-semibold text-[#151515] tracking-tight truncate">
-            {place}
-          </h3>
-          <span className="text-[10px] text-neutral-400 uppercase tracking-wider shrink-0">
-            Inspiration
-          </span>
-        </div>
-        <p className="text-xs text-neutral-600 leading-relaxed font-sans line-clamp-3">
+        <h3 className="font-display text-[15px] sm:text-base font-semibold text-[#151515] tracking-tight leading-snug line-clamp-2">
+          {place}
+        </h3>
+        <p className="mt-1.5 text-[13px] text-neutral-600 leading-relaxed font-sans line-clamp-3">
           {caption}
         </p>
       </div>
-    </div>
+    </article>
   );
 };
