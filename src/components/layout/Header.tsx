@@ -15,113 +15,79 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
   const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 80);
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // IntersectionObserver to sync active nav link with section in viewport
   useEffect(() => {
     const sectionIds = ["home", "trips", "about", "stats", "destinations", "stories", "faq", "contact"];
-    const observerCallback: IntersectionObserverCallback = (entries) => {
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
+        if (entry.isIntersecting) setActiveSection(entry.target.id);
       });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, {
-      root: null,
-      rootMargin: "-20% 0px -60% 0px",
-      threshold: 0,
-    });
-
+    }, { root: null, rootMargin: "-20% 0px -60% 0px", threshold: 0 });
     sectionIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
     });
-
     return () => observer.disconnect();
   }, []);
 
   return (
     <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-out py-3.5 sm:py-4 ${
-          isScrolled
-            ? "bg-[#0E0E0E]/90 backdrop-blur-md shadow-md border-b border-white/10"
-            : "bg-transparent"
-        }`}
-      >
-        {/* Inner Shell: strictly shares width with hero and sections */}
+      <header className={`fixed inset-x-0 z-40 transition-[top] duration-200 ease-out ${isScrolled ? "top-2" : "top-0"}`}>
         <div
+          data-header-scrolled={isScrolled ? "true" : "false"}
           data-shell
-          className="shell flex items-center justify-between gap-4 px-3 sm:px-6"
+          className={`shell transition-[background-color,box-shadow,border-color,border-radius] duration-200 ${isScrolled ? "rounded-[20px] border border-white/10 bg-[#0E0E0E]/95 shadow-lg" : "rounded-b-2xl border border-transparent bg-transparent"}`}
         >
-          {/* Left: Brand Logo */}
-          <a
-            href="#home"
-            className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-lg p-1 shrink-0"
-            aria-label="Starttrips Home"
-          >
-            <Logo theme="light" />
-          </a>
+          <div className="grid grid-cols-[1fr_auto] lg:grid-cols-[1fr_auto_1fr] items-center gap-3 px-[var(--header-inset)] py-3">
+            <a href="#home" className="flex items-center gap-2 justify-self-start rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Starttrips home">
+              <Logo theme="light" />
+            </a>
 
-          {/* Center: Desktop Nav Capsule */}
-          <nav
-            aria-label="Main Navigation"
-            className="hidden lg:flex items-center bg-[rgba(20,20,20,0.45)] backdrop-blur-md border border-white/15 rounded-full px-2 py-1.5 shadow-sm"
-          >
-            {navLinks.map((link) => {
-              const isActive = activeSection === link.id;
-              return (
-                <a
-                  key={link.id}
-                  href={link.href}
-                  className={`text-xs xl:text-sm font-medium transition-all duration-200 rounded-full px-3.5 xl:px-4 py-1.5 select-none whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-                    isActive
-                      ? "bg-white text-[#151515] font-semibold shadow-xs"
-                      : "text-white/85 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  {link.label}
-                </a>
-              );
-            })}
-          </nav>
+            <nav aria-label="Main navigation" className="hidden lg:flex justify-self-center items-center gap-1 rounded-full border border-white/15 bg-black/40 p-1.5 shadow-sm backdrop-blur-sm">
+              {navLinks.map((link) => {
+                const isActive = activeSection === link.id;
+                return (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    aria-current={isActive ? "location" : undefined}
+                    className={`inline-flex min-h-9 items-center whitespace-nowrap rounded-full px-3.5 text-[13px] xl:text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${isActive ? "bg-white text-[#151515] font-semibold" : "text-white/85 hover:bg-white/10 hover:text-white"}`}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
+            </nav>
 
-          {/* Right: Plan my trip CTA + Mobile Menu Button */}
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-            {/* Show CTA pill from sm up; below sm, sticky bottom bar handles it without cramping 320px screens */}
-            <Button
-              variant="onPhoto"
-              size="sm"
-              onClick={onPlanTripClick}
-              className="hidden sm:inline-flex text-xs font-semibold px-4 py-2 shadow-sm"
-            >
-              Plan my trip
-            </Button>
-
-            {/* Hamburger Button for Mobile / Tablet */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-navigation"
-              aria-label="Open navigation menu"
-              className="lg:hidden p-2.5 rounded-full bg-black/30 backdrop-blur-md border border-white/15 text-white hover:bg-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+            <div className="flex items-center justify-self-end gap-2.5">
+              <Button
+                variant="onPhoto"
+                size="sm"
+                onClick={onPlanTripClick}
+                className="header-plan-cta min-h-10 px-4 font-semibold"
+              >
+                Plan my trip
+              </Button>
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-navigation"
+                aria-label="Open navigation menu"
+                className="lg:hidden inline-flex size-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <Menu className="size-5" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Panel */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}

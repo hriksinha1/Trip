@@ -1,163 +1,148 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Logo } from "../ui/Logo";
 import { SocialIcon } from "../ui/SocialIcon";
 import { Button } from "../ui/Button";
+import { Dialog } from "../ui/Dialog";
 import { exploreLinks, supportLinks } from "../../data/navigation";
 import { site } from "../../data/site";
+import { images } from "../../data/images";
+import { trips } from "../../data/trips";
+import { destinations } from "../../data/destinations";
+import { editorialStories } from "../../data/stories";
+import provenanceData from "../../data/provenance.json";
 
 interface FooterProps {
   onOpenLegalDialog: (type: "terms" | "privacy") => void;
   onPlanTripClick: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  onOpenLegalDialog,
-  onPlanTripClick,
-}) => {
+interface PhotoProvenance {
+  subject?: string;
+  sourceUrl?: string;
+  license?: string;
+  licenseUrl?: string;
+  author?: string;
+  originalTitle?: string;
+  commercialUseVerified?: boolean;
+}
+
+const provenance = provenanceData as Record<string, PhotoProvenance>;
+
+export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripClick }) => {
   const currentYear = new Date().getFullYear();
+  const [photoCreditsOpen, setPhotoCreditsOpen] = useState(false);
+
+  const photoCredits = useMemo(() => {
+    const usedImageIds = new Set([
+      "hero", "stats_ocean", "promo_mountain",
+      ...trips.filter((trip) => trip.featured).map((trip) => trip.imageId),
+      ...destinations.map((destination) => destination.imageId),
+      ...editorialStories.map((story) => story.imageId),
+    ]);
+    const seen = new Set<string>();
+    return Object.entries(images).flatMap(([id, image]) => {
+      if (!usedImageIds.has(id)) return [];
+      const detail = provenance[id];
+      if (!detail?.sourceUrl) return [];
+      let dedupeKey = detail.sourceUrl;
+      try {
+        const url = new URL(detail.sourceUrl);
+        dedupeKey = url.origin + url.pathname;
+      } catch {
+        // Keep the recorded source URL as the de-duplication key when it is not absolute.
+      }
+      if (seen.has(dedupeKey)) return [];
+      seen.add(dedupeKey);
+      return [{ id, image, detail }];
+    });
+  }, []);
 
   return (
-    <footer
-      id="contact"
-      aria-label="Starttrips Footer"
-      data-shell
-      className="shell bg-[#0E0E0E] text-white pt-10 sm:pt-14 pb-10 px-6 sm:px-10 lg:px-12 rounded-b-[24px] sm:rounded-b-[28px]"
-    >
-      {/* Main 4-column Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr] gap-10 lg:gap-8 pb-12 sm:pb-16 border-b border-white/10">
-        {/* Column 1: Brand & Socials */}
-        <div className="flex flex-col items-start space-y-4">
-          <a href="#home" aria-label="Starttrips Home">
-            <Logo theme="light" />
-          </a>
-          <p className="text-sm text-[#9A9A9A] leading-relaxed max-w-[34ch] font-sans">
-            Starttrips plans beach breaks, hill escapes and heritage trips across India.
-          </p>
+    <>
+      <footer id="contact" aria-label="Starttrips footer" data-shell className="shell rounded-b-[var(--radius-block)] bg-[#0E0E0E] px-5 py-6 text-white sm:px-8 sm:py-10 lg:px-10">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 border-b border-white/10 pb-6 sm:gap-x-8 sm:gap-y-9 lg:grid-cols-[1.4fr_1fr_1fr_1.6fr] lg:gap-10 lg:pb-10">
+          <div className="col-span-2 flex flex-col items-start gap-3 lg:col-span-1">
+            <a href="#home" aria-label="Starttrips home"><Logo theme="light" /></a>
+            <p className="max-w-[34ch] text-[14px] leading-relaxed text-[#B3B3B3]">
+              Beach breaks, hill escapes and heritage trips across India.
+            </p>
+            <div className="flex items-center gap-2.5 pt-1" aria-label="Official channels">
+              {site.socials.instagram && <SocialIcon platform="instagram" href={site.socials.instagram} />}
+              {site.whatsappNumber && <SocialIcon platform="whatsapp" href={`https://wa.me/${site.whatsappNumber}`} />}
+              {site.contactEmail && <SocialIcon platform="email" href={`mailto:${site.contactEmail}`} />}
+            </div>
+          </div>
 
-          <div className="flex items-center gap-2.5 pt-2" aria-label="Official channels">
-            {site.socials.instagram && (
-              <SocialIcon platform="instagram" href={site.socials.instagram} />
-            )}
-            {site.whatsappNumber && (
-              <SocialIcon platform="whatsapp" href={`https://wa.me/${site.whatsappNumber}`} />
-            )}
-            {site.contactEmail && (
-              <SocialIcon platform="email" href={`mailto:${site.contactEmail}`} />
-            )}
+          <nav aria-label="Explore" className="min-w-0">
+            <h3 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-white">Explore</h3>
+            <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
+              {exploreLinks.map((item) => (
+                <li key={item.href} >
+                  <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Support" className="min-w-0">
+            <h3 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-white">Support</h3>
+            <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
+              {supportLinks.filter((item) => item.label !== "Terms & Conditions" && item.label !== "Privacy Policy").map((item) => (
+                <li key={item.href}>
+                  {item.label === "Terms & Conditions" ? (
+                    <button type="button" onClick={() => onOpenLegalDialog("terms")} className="inline-flex min-h-11 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
+                  ) : item.label === "Privacy Policy" ? (
+                    <button type="button" onClick={() => onOpenLegalDialog("privacy")} className="inline-flex min-h-11 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
+                  ) : (
+                    <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="col-span-2 min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 lg:col-span-1">
+            <h3 className="font-display text-[15px] font-semibold text-white">Plan your trip</h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-[#B3B3B3]">
+              Tell us where you’d like to go and we’ll help arrange your itinerary.
+            </p>
+            <div className="mt-4 grid gap-2.5">
+              <Button variant="onPhoto" size="md" onClick={onPlanTripClick} className="w-full font-semibold">Plan my trip</Button>
+              <p className="text-center text-xs leading-relaxed text-[#B3B3B3]">
+                Find our official social and contact links in this footer.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Column 2: Explore Links */}
-        <div>
-          <h3 className="font-display text-sm font-semibold text-white tracking-wider uppercase mb-4">
-            Explore
-          </h3>
-          <ul className="space-y-2.5 text-sm text-[#9A9A9A]">
-            {exploreLinks.map((item, index) => (
-              <li key={index}>
-                <a
-                  href={item.href}
-                  className="hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white rounded-xs"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Column 3: Support Links */}
-        <div>
-          <h3 className="font-display text-sm font-semibold text-white tracking-wider uppercase mb-4">
-            Support
-          </h3>
-          <ul className="space-y-2.5 text-sm text-[#9A9A9A]">
-            {supportLinks.map((item, index) => (
-              <li key={index}>
-                {item.label === "Plan my trip" ? (
-                  <button
-                    type="button"
-                    onClick={onPlanTripClick}
-                    className="hover:text-white transition-colors duration-150 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white rounded-xs"
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <a
-                    href={item.href}
-                    className="hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white rounded-xs"
-                  >
-                    {item.label}
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Column 4: Plan your trip conversion block (Replaces fake newsletter) */}
-        <div className="flex flex-col">
-          <h3 className="font-display text-sm font-semibold text-white tracking-wider uppercase mb-2">
-            Plan your trip
-          </h3>
-          <p className="text-sm text-[#9A9A9A] leading-relaxed mb-4 font-sans">
-            Tell us where you'd like to go and we'll help arrange your itinerary.
-          </p>
-
-          <div className="flex flex-col gap-3">
-            <Button
-              variant="onPhoto"
-              size="md"
-              onClick={onPlanTripClick}
-              className="w-full sm:w-auto font-semibold text-sm"
-            >
-              Plan my trip
-            </Button>
-
-            <a
-              href={site.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center text-xs text-neutral-300 hover:text-white underline underline-offset-4 py-1"
-            >
-              Message on Instagram ({site.instagramHandle})
-            </a>
-
-            {site.whatsappNumber && (
-              <a
-                href={`https://wa.me/${site.whatsappNumber}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-4 py-1"
-              >
-                Chat on WhatsApp
-              </a>
-            )}
+        <div className="flex flex-col items-center gap-4 pt-4 text-center text-[13px] text-[#A6A6A6] sm:flex-row sm:justify-between sm:text-left">
+          <p>© {currentYear} Starttrips. All rights reserved.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <button type="button" onClick={() => onOpenLegalDialog("terms")} className="min-h-11 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Terms</button>
+            <button type="button" onClick={() => onOpenLegalDialog("privacy")} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Privacy</button>
+            <button type="button" onClick={() => setPhotoCreditsOpen(true)} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Photo credits</button>
           </div>
         </div>
-      </div>
+      </footer>
 
-      {/* Bottom Bar */}
-      <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#9A9A9A] gap-4">
-        <p>© {currentYear} Starttrips. All rights reserved.</p>
-
-        <div className="flex items-center gap-6">
-          <button
-            type="button"
-            onClick={() => onOpenLegalDialog("terms")}
-            className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
-          >
-            Terms & Conditions
-          </button>
-          <button
-            type="button"
-            onClick={() => onOpenLegalDialog("privacy")}
-            className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
-          >
-            Privacy Policy
-          </button>
+      <Dialog isOpen={photoCreditsOpen} onClose={() => setPhotoCreditsOpen(false)} title="Photo credits" description="Photographs and licences recorded for the images used by Starttrips. Images may be cropped and resized for the layout.">
+        <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+          {photoCredits.map(({ id, image, detail }) => (
+            <article key={id} className="border-b border-neutral-200 pb-3 last:border-b-0">
+              <h4 className="font-display text-base font-semibold text-[#151515]">{image.label}</h4>
+              {detail.originalTitle && <p className="mt-1 text-sm text-neutral-600">{detail.originalTitle.replace(/^File:/, "")}</p>}
+              <p className="mt-1 text-sm text-neutral-600">Photographer / author: {detail.author || "Not recorded"}</p>
+              <p className="mt-1 text-sm text-neutral-600">
+                Licence: {detail.license && detail.licenseUrl ? <a href={detail.licenseUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#151515]">{detail.license}</a> : detail.license || "Not recorded"}
+              </p>
+              {detail.originalTitle && <a href={`https://commons.wikimedia.org/wiki/${encodeURIComponent(detail.originalTitle).replace(/%3A/gi, ":")}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center text-sm font-medium text-[#151515] underline underline-offset-2">View source page</a>}
+              {detail.sourceUrl && <a href={detail.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 ml-3 inline-flex min-h-11 items-center text-sm font-medium text-[#151515] underline underline-offset-2">Original image file</a>}
+              {detail.commercialUseVerified !== true && <p className="mt-2 text-xs leading-relaxed text-amber-800">Commercial-use suitability has not been independently verified. Confirm the licence terms before using this image in marketing.</p>}
+            </article>
+          ))}
+          <p className="text-xs text-neutral-500">Images have been cropped and resized. Please review the linked source and licence terms before reuse.</p>
         </div>
-      </div>
-    </footer>
+      </Dialog>
+    </>
   );
 };

@@ -25,31 +25,19 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
   return (
     <div className={`flex flex-col ${alignClass} ${className}`}>
       {eyebrow && (
-        <span
-          className={`text-xs sm:text-sm font-medium tracking-wide uppercase mb-2 sm:mb-3 font-sans ${
-            isDark ? "text-neutral-400" : "text-neutral-500"
-          }`}
-        >
+        <span className={`text-xs sm:text-sm font-medium tracking-[0.14em] uppercase mb-2 font-sans ${isDark ? "text-neutral-300" : "text-neutral-500"}`}>
           {eyebrow}
         </span>
       )}
-
       <h2
         id={id}
-        className={`font-display text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight leading-[1.05] sm:leading-[1.1] ${
-          isDark ? "text-white" : "text-[#151515]"
-        }`}
+        className={`font-display text-[clamp(2rem,1.1rem+2.2vw,3rem)] font-medium tracking-tight leading-[1.08] ${isDark ? "text-white" : "text-[#151515]"}`}
         style={{ textWrap: "balance" }}
       >
         {title}
       </h2>
-
       {subtitle && (
-        <p
-          className={`mt-3 sm:mt-4 text-sm sm:text-base leading-relaxed font-sans max-w-[50ch] ${
-            isDark ? "text-neutral-300" : "text-neutral-600"
-          }`}
-        >
+        <p className={`mt-3 text-[15px] sm:text-base leading-relaxed font-sans max-w-[56ch] ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
           {subtitle}
         </p>
       )}

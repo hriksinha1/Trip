@@ -10,11 +10,12 @@
     "prebuild": "node scripts/generate-image-manifest.mjs",
     "generate:manifest": "node scripts/generate-image-manifest.mjs",
     "check:images": "node scripts/check-images.mjs",
-    "check:stats": "tsx scripts/check-stats.ts",
+    "check:stats": "node scripts/check-stats.mjs",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "verify": "npm run check:images -- --strict && npm run check:stats && npm run lint && npm run build"
+    "test:browser": "node tests/browser/verify.mjs",
+    "verify": "npm run check:images -- --strict && npm run check:stats && npm run lint && npm run build && npm run test:browser"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

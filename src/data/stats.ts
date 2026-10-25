@@ -2,25 +2,28 @@ import { destinations, destinationCategories } from "./destinations";
 
 export interface StatFact {
   id: string;
-  value: string;
+  value?: string;
+  title: string;
   caption: string;
 }
 
-// Derived from actual code data so they remain verifiably true without inflated marketing claims
+// Only derived data is shown numerically; the third item describes the enquiry flow honestly.
 export const statsFacts: StatFact[] = [
   {
     id: "fact-destinations",
     value: `${destinations.length}`,
-    caption: "Indian destinations to explore, from beaches and hill stations to heritage cities",
+    title: "Indian destinations",
+    caption: "Beach breaks, hill stations and heritage cities to start from.",
   },
   {
     id: "fact-styles",
-    value: `${destinationCategories.filter((c) => c !== "All").length}`,
-    caption: "Travel styles, from beach breaks to weekend escapes",
+    value: `${destinationCategories.filter((category) => category !== "All").length}`,
+    title: "ways to travel",
+    caption: "Beaches, hills, nature, heritage and weekend trips, shaped around your plan.",
   },
   {
     id: "fact-enquiry",
-    value: "1",
-    caption: "Enquiry to start: tell us your plan and we'll help from first idea to the trip home",
+    title: "One simple enquiry",
+    caption: "Share your dates, group size and ideas. Nothing is booked until Starttrips confirms the details with you.",
   },
 ];

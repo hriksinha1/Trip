@@ -16,199 +16,174 @@ export const PopularTrips: React.FC<PopularTripsProps> = ({ onEnquireNow }) => {
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const featuredTrips = trips.filter((trip) => trip.featured);
 
-  const featuredTrips = trips.filter((t) => t.featured);
-
-  const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
+  const formatPrice = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(amount);
-  };
 
   const checkScroll = () => {
-    if (!trackRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = trackRef.current;
-    setCanScrollPrev(scrollLeft > 10);
-    setCanScrollNext(scrollLeft < scrollWidth - clientWidth - 10);
-    setIsOverflowing(scrollWidth > clientWidth + 10);
+    const track = trackRef.current;
+    if (!track) return;
+    const { scrollLeft, scrollWidth, clientWidth } = track;
+    const overflowing = scrollWidth > clientWidth + 2;
+    setIsOverflowing(overflowing);
+    setCanScrollPrev(scrollLeft > 2);
+    setCanScrollNext(overflowing && scrollLeft < scrollWidth - clientWidth - 2);
 
-    const cardWidth = scrollWidth / featuredTrips.length;
-    const newIndex = Math.min(
-      featuredTrips.length - 1,
-      Math.max(0, Math.round(scrollLeft / cardWidth))
-    );
-    setActiveIndex(newIndex);
+    if (featuredTrips.length > 0) {
+      const first = track.firstElementChild as HTMLElement | null;
+      const cardWidth = first?.getBoundingClientRect().width || 1;
+      const gap = Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+      setActiveIndex(Math.min(featuredTrips.length - 1, Math.max(0, Math.round(scrollLeft / (cardWidth + gap)))));
+    }
   };
 
   useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-
+    const track = trackRef.current;
+    if (!track) return;
     checkScroll();
-    el.addEventListener("scroll", checkScroll, { passive: true });
-    window.addEventListener("resize", checkScroll);
-
+    track.addEventListener("scroll", checkScroll, { passive: true });
+    const resizeObserver = new ResizeObserver(checkScroll);
+    resizeObserver.observe(track);
     return () => {
-      el.removeEventListener("scroll", checkScroll);
-      window.removeEventListener("resize", checkScroll);
+      track.removeEventListener("scroll", checkScroll);
+      resizeObserver.disconnect();
     };
   }, [featuredTrips.length]);
 
   const scrollToCard = (index: number) => {
-    if (!trackRef.current) return;
-    const cardEl = trackRef.current.children[index] as HTMLElement;
-    if (cardEl) {
-      cardEl.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
-    }
+    const track = trackRef.current;
+    const card = track?.children[index] as HTMLElement | undefined;
+    if (!track || !card) return;
+    const targetLeft = track.scrollLeft + card.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    track.scrollTo({ left: targetLeft, behavior: "smooth" });
   };
 
   return (
-    <section
-      id="trips"
-      aria-labelledby="popular-trips-heading"
-      className="w-full py-14 sm:py-20 scroll-mt-20"
-    >
+    <section id="trips" aria-labelledby="popular-trips-heading" className="section w-full scroll-mt-20">
       <div data-shell className="shell">
-        {/* Section Header */}
         <SectionHeading
           id="popular-trips-heading"
-          title="Our Popular Trips"
-          subtitle="Beach breaks, hill escapes and coastal getaways across India, picked to make planning easy."
-          className="mb-10 sm:mb-14"
+          title="Our popular trips"
+          subtitle="Beach breaks, hill escapes and coastal getaways across India, picked to make planning easier."
+          className="section-heading-gap"
         />
 
-        {/* Cards Container: scroll-snap on <sm, 2 columns on sm-xl, 4 columns on >=xl */}
         <div
           ref={trackRef}
           tabIndex={0}
           aria-label="Popular trips list"
-          className="flex sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-5 sm:gap-6 overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar pb-2 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] rounded-xl"
+          className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:auto-rows-fr gap-[var(--card-gap)] overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar pb-2 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] rounded-xl"
         >
-          {featuredTrips.map((trip) => {
-            return (
-              <article
-                key={trip.id}
-                className="snap-start shrink-0 w-[78vw] sm:w-auto flex flex-col group min-w-0"
-              >
-                {/* Image Frame */}
-                <div className="relative aspect-[4/5] rounded-[16px] overflow-hidden bg-neutral-100 shadow-xs">
-                  {trip.isRecommended && (
-                    <span className="absolute top-3.5 left-3.5 z-10 px-3 py-1 rounded-full bg-white/90 backdrop-blur-xs text-[11px] font-semibold text-neutral-800 shadow-xs select-none">
-                      Recommended
-                    </span>
-                  )}
-                  <SmartImage
-                    imageId={trip.imageId}
-                    fill
-                    sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 78vw"
-                    className="transition-transform duration-500 ease-out group-hover:scale-105"
-                  />
-                </div>
+          {featuredTrips.map((trip) => (
+            <article
+              key={trip.id}
+              className="snap-start shrink-0 w-[78vw] sm:w-auto min-w-0 flex h-full flex-col group"
+            >
+              <div className="relative aspect-[4/5] sm:aspect-[4/3] xl:aspect-[5/6] rounded-[var(--radius-card)] overflow-hidden bg-neutral-100 shadow-xs">
+                {trip.isRecommended && (
+                  <span className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-white/95 text-[11px] font-semibold text-neutral-800 shadow-xs select-none">
+                    Featured
+                  </span>
+                )}
+                <SmartImage
+                  imageId={trip.imageId}
+                  fill
+                  sizes="(min-width: 1280px) 22vw, (min-width: 640px) 46vw, 78vw"
+                  className="transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
 
-                {/* Content below image */}
-                <div className="pt-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-neutral-500 mb-1">
-                      {trip.location}
-                    </p>
-                    <h3 className="font-display text-lg sm:text-xl font-semibold text-[#151515] tracking-tight leading-snug">
-                      {trip.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm text-neutral-600 line-clamp-2 leading-relaxed">
-                      {trip.description}
-                    </p>
-
-                    {/* Metadata Rows: Best Time & Duration */}
-                    <div className="mt-3.5 space-y-1.5 text-xs text-neutral-500">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-neutral-400 shrink-0" aria-hidden="true" />
-                        <span>Best time: {trip.bestTime}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-neutral-400 shrink-0" aria-hidden="true" />
-                        <span>{trip.duration}</span>
-                      </div>
+              <div className="pt-4 flex flex-1 flex-col">
+                <div>
+                  <p className="text-[13px] font-medium text-neutral-500 mb-1">{trip.location}</p>
+                  <h3 className="font-display text-[20px] sm:text-[21px] font-semibold tracking-tight leading-snug line-clamp-2">
+                    {trip.title}
+                  </h3>
+                  <p className="mt-2 text-[15px] text-neutral-600 line-clamp-2 leading-relaxed min-h-[3.15rem]">
+                    {trip.description}
+                  </p>
+                  <div className="mt-3 space-y-1.5 text-[13px] text-neutral-500">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="mt-0.5 size-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                      <span>Best time: {trip.bestTime}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Clock className="mt-0.5 size-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                      <span>{trip.duration}</span>
                     </div>
                   </div>
-
-                  {/* Price & Enquire Button */}
-                  <div className="mt-4 pt-3 flex items-center justify-between gap-2 border-t border-neutral-200/60">
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-neutral-500">From</span>
-                        {/* Indian Rupee rendered in Poppins semibold */}
-                        <span className="font-sans font-semibold text-base text-[#151515] tabular-nums">
-                          {formatPrice(trip.priceFrom)}
-                        </span>
-                        {site.showSampleLabels && (
-                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider bg-neutral-100 px-1.5 py-0.5 rounded-xs">
-                            Indicative
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-neutral-500">/ person</span>
-                    </div>
-
-                    <Button
-                      variant={trip.isPrimaryButton ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => onEnquireNow(trip)}
-                      className="font-medium text-xs px-4 py-1.5"
-                    >
-                      Enquire Now
-                    </Button>
-                  </div>
                 </div>
-              </article>
-            );
-          })}
+
+                <div className="mt-auto pt-4">
+                  <div className="border-t border-neutral-200/80 pt-3">
+                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+                      <span className="text-xs text-neutral-500">From</span>
+                      <span className="font-sans font-semibold text-[18px] text-[#151515] tabular-nums">{formatPrice(trip.priceFrom)}</span>
+                      <span className="text-[13px] text-neutral-500">/ person</span>
+                    </div>
+                    {site.showSampleLabels && (
+                      <span className="mt-1 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] tracking-wide text-neutral-500">
+                        Indicative price
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => onEnquireNow(trip)}
+                    className="mt-3 w-full whitespace-normal text-center leading-tight"
+                  >
+                    Enquire about this trip
+                  </Button>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
 
-        {/* Pager: Visible on mobile (<640px) when carousel track overflows */}
         {isOverflowing && (
-          <div className="mt-6 flex items-center justify-center gap-2 sm:hidden">
+          <div className="mt-4 flex items-center justify-center gap-2 sm:hidden">
             <button
               type="button"
               onClick={() => scrollToCard(Math.max(0, activeIndex - 1))}
               disabled={!canScrollPrev}
               aria-label="Previous trip"
-              className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              className="min-h-11 min-w-11 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="size-4" />
             </button>
-
-            <div className="flex items-center gap-1.5 px-2">
-              {featuredTrips.map((_, i) => (
+            <div className="flex items-center gap-1.5">
+              {featuredTrips.map((trip, index) => (
                 <button
-                  key={i}
+                  key={trip.id}
                   type="button"
-                  onClick={() => scrollToCard(i)}
-                  aria-label={`Go to trip ${i + 1}`}
-                  className={`transition-all duration-200 rounded-full ${
-                    activeIndex === i
-                      ? "w-6 h-2 bg-[#151515]"
-                      : "w-2 h-2 bg-neutral-300 hover:bg-neutral-400"
-                  }`}
-                />
+                  onClick={() => scrollToCard(index)}
+                  aria-label={`Go to trip ${index + 1}`}
+                  aria-current={activeIndex === index ? "true" : undefined}
+                  className="flex min-h-11 min-w-7 items-center justify-center"
+                >
+                  <span className={`block rounded-full transition-all ${activeIndex === index ? "w-5 h-2 bg-[#151515]" : "size-2 bg-neutral-300"}`} />
+                </button>
               ))}
             </div>
-
             <button
               type="button"
               onClick={() => scrollToCard(Math.min(featuredTrips.length - 1, activeIndex + 1))}
               disabled={!canScrollNext}
               aria-label="Next trip"
-              className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              className="min-h-11 min-w-11 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="size-4" />
             </button>
           </div>
         )}
 
-        {/* Footnote */}
-        <p className="mt-8 text-center text-xs text-neutral-500">
+        <p className="mt-5 text-center text-[13px] text-neutral-500">
           Prices are indicative starting points per person and may change. Enquire for current rates.
         </p>
       </div>

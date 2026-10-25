@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local AI Studio working files and prompt artifacts must not be deployed.
+.aistudio/
+public/assets/aistudio/
+
+# Browser screenshots and generated local reports are recreated by verification.
+docs/screenshots/after/
+docs/REDESIGN_METRICS.json

@@ -88,7 +88,7 @@ export function App() {
         <PopularTrips onEnquireNow={handleTripEnquire} />
 
         {/* 3. Brand Statement */}
-        <BrandStatement />
+        <BrandStatement onPlanTripClick={() => handleOpenEnquiry()} />
 
         {/* 4. Statistics / Service Facts */}
         <StatisticsSection />
