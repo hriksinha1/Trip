@@ -9,6 +9,11 @@ interface DestinationExplorerProps {
   onSelectDestination: (destination: Destination) => void;
 }
 
+const formatDestinationName = (destination: Destination) =>
+  destination.name.toLowerCase().includes(destination.state.toLowerCase())
+    ? destination.name
+    : `${destination.name}, ${destination.state}`;
+
 export const DestinationExplorer: React.FC<DestinationExplorerProps> = ({ onSelectDestination }) => {
   const [activeCategory, setActiveCategory] = useState<DestinationCategory>("All");
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -99,14 +104,14 @@ export const DestinationExplorer: React.FC<DestinationExplorerProps> = ({ onSele
               </div>
               <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end p-5 sm:p-6 text-left text-white">
                 <h3 className="mb-1.5 font-display text-[22px] sm:text-2xl font-semibold tracking-tight leading-tight" style={{ textWrap: "balance" }}>
-                  {destination.name}, {destination.state}
+                  {formatDestinationName(destination)}
                 </h3>
                 <p className="mb-4 line-clamp-2 text-[15px] leading-relaxed text-white/90">{destination.description}</p>
                 <div className="flex items-center justify-between gap-2 border-t border-white/20 pt-3">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {destination.tags.map((tag) => <span key={tag} className="rounded-full border border-white/35 bg-white/10 px-2.5 py-1 text-xs text-white/95">{tag}</span>)}
                   </div>
-                  <button type="button" onClick={() => onSelectDestination(destination)} aria-label={`View details for ${destination.name}, ${destination.state}`} className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white hover:text-[#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                  <button type="button" onClick={() => onSelectDestination(destination)} aria-label={`View details for ${formatDestinationName(destination)}`} className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white hover:text-[#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </button>
                 </div>
