@@ -4,9 +4,9 @@ import { SmartImage } from "../ui/SmartImage";
 import { Button } from "../ui/Button";
 
 const collage = [
-  { id: "dest_coorg", label: "Coorg", className: "row-span-2 aspect-[4/5]" },
-  { id: "dest_gokarna", label: "Gokarna", className: "aspect-[4/3]" },
-  { id: "dest_chikmagalur", label: "Chikmagalur", className: "aspect-[4/3]" },
+  { id: "dest_coorg", label: "Coorg", className: "row-span-2" },
+  { id: "dest_gokarna", label: "Gokarna", className: "" },
+  { id: "dest_hampi", label: "Hampi", className: "" },
 ];
 
 export const BrandStatement: React.FC = () => {
@@ -37,7 +37,7 @@ export const BrandStatement: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3 min-w-0">
+        <div className="grid h-[clamp(300px,32vw,460px)] min-w-0 grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3">
           {collage.map((photo) => (
             <figure key={photo.id} className={`relative min-w-0 overflow-hidden rounded-[var(--radius-card)] bg-[#E8E6E0] shadow-soft ${photo.className}`}>
               <SmartImage imageId={photo.id} alt={photo.label + " travel landscape in India"} fill className="object-cover" />
