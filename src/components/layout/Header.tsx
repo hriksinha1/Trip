@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
 
             <div className="flex items-center justify-self-end gap-2.5">
               <Button
-                variant={isScrolled ? "primary" : "onPhoto"}
+                variant="onPhoto"
                 size="sm"
                 onClick={onPlanTripClick}
                 className="header-plan-cta min-h-10 px-4 font-semibold"
