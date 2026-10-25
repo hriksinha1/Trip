@@ -2,8 +2,8 @@ import React from "react";
 import { SmartImage } from "./SmartImage";
 
 interface PolaroidCardProps {
-  author: string;
-  quote: string;
+  place: string;
+  caption: string;
   imageId: string;
   rotationDesktop?: string;
   offsetDesktop?: string;
@@ -11,8 +11,8 @@ interface PolaroidCardProps {
 }
 
 export const PolaroidCard: React.FC<PolaroidCardProps> = ({
-  author,
-  quote,
+  place,
+  caption,
   imageId,
   rotationDesktop = "",
   offsetDesktop = "",
@@ -30,13 +30,18 @@ export const PolaroidCard: React.FC<PolaroidCardProps> = ({
         />
       </div>
 
-      {/* Caption Area */}
+      {/* Caption Area (Editorial, no quotation marks) */}
       <div className="pt-3.5 sm:pt-4 px-1 text-left">
-        <h3 className="font-display text-sm sm:text-base font-semibold text-[#151515] tracking-tight">
-          {author}
-        </h3>
-        <p className="mt-1 text-xs text-neutral-500 leading-relaxed font-sans line-clamp-3">
-          "{quote}"
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h3 className="font-display text-sm sm:text-base font-semibold text-[#151515] tracking-tight truncate">
+            {place}
+          </h3>
+          <span className="text-[10px] text-neutral-400 uppercase tracking-wider shrink-0">
+            Inspiration
+          </span>
+        </div>
+        <p className="text-xs text-neutral-600 leading-relaxed font-sans line-clamp-3">
+          {caption}
         </p>
       </div>
     </div>

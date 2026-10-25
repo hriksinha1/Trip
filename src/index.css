@@ -10,6 +10,12 @@
     --tint: #F3F2EE;
     --footer: #0E0E0E;
     --footer-muted: #9A9A9A;
+    --brand: #151515;
+
+    /* Responsive gutter & layout tiers */
+    --gutter: clamp(16px, calc(8px + 2.2vw), 48px);
+    --shell-max: 1600px;
+    --text-max: 840px;
 
     --font-display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -37,6 +43,16 @@
   }
 }
 
+/* Consistent layout tiers */
+.shell {
+  width: min(100% - 2 * var(--gutter), var(--shell-max));
+  margin-inline: auto;
+}
+
+.bleed-pad {
+  padding-inline: max(var(--gutter), calc((100% - var(--shell-max)) / 2));
+}
+
 /* Hide scrollbar while preserving touch & trackpad horizontal scroll */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -44,13 +60,6 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-/* Scalloped ticket bottom edge utility */
-.ticket-scallop {
-  background-image: radial-gradient(circle at 10px 0, transparent 0, transparent 6px, #F3F2EE 6.5px);
-  background-size: 20px 10px;
-  background-repeat: repeat-x;
 }
 
 /* Feathered curved bottom mask for Hero */
@@ -65,13 +74,32 @@
   -webkit-mask-image: linear-gradient(to top, black 0%, black 88%, rgba(0,0,0,0.5) 95%, transparent 100%);
 }
 
-/* Soft card shadow */
+/* Soft card shadows */
 .shadow-soft {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-polaroid {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+/* Keyframes for modals and dialogs */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-backdrop-animate {
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-content-animate {
+  animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Reduced motion overrides */
@@ -81,5 +109,9 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .modal-backdrop-animate,
+  .modal-content-animate {
+    animation: none !important;
   }
 }

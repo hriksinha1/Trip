@@ -7,32 +7,38 @@ export interface FAQItem {
 export const faqs: FAQItem[] = [
   {
     id: "faq-1",
-    question: "Can I change or cancel my trip after booking?",
+    question: "How do I enquire about a trip?",
     answer:
-      "We know plans can change. Many trips can be updated or cancelled directly from your Nomira account, depending on the terms shown for that specific journey. Be sure to check the flexibility details before confirming.",
+      "Use \"Plan my trip\" or \"Enquire Now\", choose a destination or package, add your dates and group size, then send your enquiry to Starttrips through the channel you prefer (Instagram, and WhatsApp or email where shown).",
   },
   {
     id: "faq-2",
-    question: "Does Nomira offer group travel options?",
+    question: "Can I customise a package or change the itinerary?",
     answer:
-      "Yes, selected trips are specially tailored for groups and private parties. Look for group-friendly tags on any trip page, or reach out to our travel specialists and we'll craft the ideal itinerary for your team.",
+      "The trips on this page are starting points. Share your preferred dates, group size and interests in your enquiry, and Starttrips will let you know what can be arranged.",
   },
   {
     id: "faq-3",
-    question: "How do I get travel support during my trip?",
+    question: "What is included in a trip package?",
     answer:
-      "Our global support team can be reached 24/7 through the Nomira Help Center and dedicated in-journey chat. Dedicated local contact details for each itinerary are included in your booking confirmation.",
+      "Inclusions differ by trip and are confirmed with you during the enquiry. Prices on this page are indicative starting points, not final quotes.",
   },
   {
     id: "faq-4",
-    question: "Can I save destinations to plan later?",
+    question: "Can I travel with a group?",
     answer:
-      "Yes! You can bookmark any destination or trip package to your curated Nomira favorites list and revisit them whenever you are ready to begin planning.",
+      "Mention your group size in the enquiry form and Starttrips will get back to you about what's possible.",
   },
   {
     id: "faq-5",
-    question: "Does Nomira offer special deals or discounts?",
+    question: "How do payments and booking confirmation work?",
     answer:
-      "We feature curated seasonal offers and early-bird advantages throughout the year. Explore our Deals section and subscribe to our newsletter below to receive first access to limited-edition adventures.",
+      "This website does not take payments. Nothing on it is a confirmed booking until Starttrips confirms details with you directly.",
+  },
+  {
+    id: "faq-6",
+    question: "How can I contact Starttrips?",
+    answer:
+      "Message Starttrips on Instagram (@starttrips_), or use the contact options shown in the footer.",
   },
 ];

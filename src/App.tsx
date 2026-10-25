@@ -9,14 +9,15 @@ import { DestinationExplorer } from "./components/sections/DestinationExplorer";
 import { TravelerStories } from "./components/sections/TravelerStories";
 import { FAQSection } from "./components/sections/FAQSection";
 import { PromotionalCTA } from "./components/sections/PromotionalCTA";
+import { StickyMobileCTA } from "./components/ui/StickyMobileCTA";
 
-import { BookingModal } from "./components/modals/BookingModal";
-import { AuthModal } from "./components/modals/AuthModal";
+import { EnquiryModal, EnquiryInitialData } from "./components/modals/EnquiryModal";
 import { DestinationModal } from "./components/modals/DestinationModal";
 import { LegalModal } from "./components/modals/LegalModal";
 
-import { Trip, trips } from "./data/trips";
+import { Trip } from "./data/trips";
 import { Destination } from "./data/destinations";
+import { TripSearchParams } from "./components/sections/TripSearch";
 import { useReveal } from "./hooks/useReveal";
 
 export function App() {
@@ -24,19 +25,24 @@ export function App() {
   useReveal();
 
   // Modal States
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
+  const [enquiryInitialData, setEnquiryInitialData] = useState<EnquiryInitialData | null>(null);
+
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDestModalOpen, setIsDestModalOpen] = useState(false);
-  const [legalModalType, setLegalModalType] = useState<"terms" | "privacy" | "partner" | "help" | null>(null);
+  const [legalModalType, setLegalModalType] = useState<"terms" | "privacy" | null>(null);
 
-  // Search notification status
-  const [searchStatus, setSearchStatus] = useState<string | null>(null);
+  const isAnyModalOpen = isEnquiryOpen || isDestModalOpen || legalModalType !== null;
 
-  const handleOpenBooking = (trip?: Trip) => {
-    setSelectedTrip(trip || trips[0]);
-    setIsBookingOpen(true);
+  const handleOpenEnquiry = (initial?: EnquiryInitialData) => {
+    setEnquiryInitialData(initial || null);
+    setIsEnquiryOpen(true);
+  };
+
+  const handleTripEnquire = (trip: Trip) => {
+    handleOpenEnquiry({
+      destination: trip.title,
+    });
   };
 
   const handleSelectDestination = (dest: Destination) => {
@@ -44,30 +50,24 @@ export function App() {
     setIsDestModalOpen(true);
   };
 
-  const handleSearchSubmit = (query: {
-    destination: string;
-    checkIn: string;
-    checkOut: string;
-    persons: number;
-    rooms: number;
-  }) => {
-    const statusMsg = `Showing sample trips matching "${query.destination}". (Demo: sample availability only)`;
-    setSearchStatus(statusMsg);
+  const handleDestinationEnquire = (dest: Destination) => {
+    setIsDestModalOpen(false);
+    handleOpenEnquiry({
+      destination: `${dest.name}, ${dest.state}`,
+    });
+  };
 
-    // Smooth scroll down to popular trips section
-    const tripsEl = document.getElementById("trips");
-    if (tripsEl) {
-      tripsEl.scrollIntoView({ behavior: "smooth" });
-    }
-
-    // Clear message after 8 seconds
-    setTimeout(() => {
-      setSearchStatus(null);
-    }, 8000);
+  const handleHeroSearchSubmit = (params: TripSearchParams) => {
+    handleOpenEnquiry({
+      destination: params.destination,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      travellers: params.travellers,
+    });
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#151515] flex flex-col font-sans selection:bg-[#151515] selection:text-white">
+    <div className="min-h-screen bg-[#FAF9F6] text-[#151515] font-sans selection:bg-[#151515] selection:text-white pb-16 md:pb-0">
       {/* Skip Link for Keyboard Accessibility */}
       <a
         href="#main-content"
@@ -77,63 +77,61 @@ export function App() {
       </a>
 
       {/* Floating Header */}
-      <Header onSignUpClick={() => setIsAuthOpen(true)} />
+      <Header onPlanTripClick={() => handleOpenEnquiry()} />
 
-      {/* Semantic Main Content */}
-      <main id="main-content" className="flex-1 flex flex-col">
+      {/* Main semantic container - plain block per spec to prevent auto-margin flex shrinking */}
+      <main id="main-content" className="w-full">
         {/* 1. Header + Hero */}
-        <HeroSection
-          onSearchSubmit={handleSearchSubmit}
-          searchNotification={searchStatus}
-        />
+        <HeroSection onSearchSubmit={handleHeroSearchSubmit} />
 
         {/* 2. Our Popular Trips */}
-        <PopularTrips onBookNow={handleOpenBooking} />
+        <PopularTrips onEnquireNow={handleTripEnquire} />
 
         {/* 3. Brand Statement */}
         <BrandStatement />
 
-        {/* 4. Statistics */}
+        {/* 4. Statistics / Service Facts */}
         <StatisticsSection />
 
-        {/* 5. Discover the World */}
+        {/* 5. Discover India / Destination Explorer */}
         <DestinationExplorer onSelectDestination={handleSelectDestination} />
 
-        {/* 6. Traveler Stories */}
-        <TravelerStories onSeeMoreStories={() => setIsAuthOpen(true)} />
+        {/* 6. Editorial Experiences */}
+        <TravelerStories />
 
         {/* 7. Frequently Asked Questions */}
-        <FAQSection onExploreMoreQuestions={() => setLegalModalType("help")} />
+        <FAQSection onPlanTripClick={() => handleOpenEnquiry()} />
 
         {/* 8. Promotional CTA */}
-        <PromotionalCTA onBookNow={() => handleOpenBooking()} />
+        <PromotionalCTA onPlanTripClick={() => handleOpenEnquiry()} />
       </main>
 
-      {/* 9. Footer */}
-      <div className="px-3 sm:px-6 md:px-10 lg:px-14 pb-4 sm:pb-6 max-w-[1440px] mx-auto w-full">
-        <Footer onOpenLegalDialog={(type) => setLegalModalType(type)} />
+      {/* 9. Footer - directly follows promo with zero gap, shares shell width */}
+      <div className="w-full pb-8 sm:pb-12">
+        <Footer
+          onOpenLegalDialog={(type) => setLegalModalType(type)}
+          onPlanTripClick={() => handleOpenEnquiry()}
+        />
       </div>
 
-      {/* Modals & Dialogs */}
-      <BookingModal
-        isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
-        trip={selectedTrip}
+      {/* Sticky Mobile CTA Bar */}
+      <StickyMobileCTA
+        onPlanTripClick={() => handleOpenEnquiry()}
+        isAnyModalOpen={isAnyModalOpen}
       />
 
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
+      {/* Modals & Dialogs */}
+      <EnquiryModal
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
+        initialData={enquiryInitialData}
       />
 
       <DestinationModal
         isOpen={isDestModalOpen}
         onClose={() => setIsDestModalOpen(false)}
         destination={selectedDestination}
-        onBookTrip={() => {
-          setIsDestModalOpen(false);
-          handleOpenBooking();
-        }}
+        onEnquireDestination={handleDestinationEnquire}
       />
 
       <LegalModal

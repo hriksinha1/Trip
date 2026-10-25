@@ -1,31 +1,26 @@
-export interface StatItem {
+import { destinations, destinationCategories } from "./destinations";
+
+export interface StatFact {
   id: string;
-  targetValue: number;
-  suffix: string;
-  displayValue: string;
+  value: string;
   caption: string;
 }
 
-export const stats: StatItem[] = [
+// Derived from actual code data so they remain verifiably true without inflated marketing claims
+export const statsFacts: StatFact[] = [
   {
-    id: "stat-explorers",
-    targetValue: 44,
-    suffix: "K+",
-    displayValue: "44K+",
-    caption: "Happy explorers who found their dream trips with Nomira",
+    id: "fact-destinations",
+    value: `${destinations.length}`,
+    caption: "Indian destinations to explore, from beaches and hill stations to heritage cities",
   },
   {
-    id: "stat-destinations",
-    targetValue: 300,
-    suffix: "+",
-    displayValue: "300+",
-    caption: "Handpicked destinations curated for every kind of traveler",
+    id: "fact-styles",
+    value: `${destinationCategories.filter((c) => c !== "All").length}`,
+    caption: "Travel styles, from beach breaks to weekend escapes",
   },
   {
-    id: "stat-discount",
-    targetValue: 30,
-    suffix: "%",
-    displayValue: "30%",
-    caption: "Book your next trip today and enjoy exclusive Nomira deals",
+    id: "fact-enquiry",
+    value: "1",
+    caption: "Enquiry to start: tell us your plan and we'll help from first idea to the trip home",
   },
 ];

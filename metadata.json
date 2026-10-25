@@ -1,6 +1,6 @@
 {
-  "name": "NOMIRA - Travel & Curated Adventures",
-  "description": "Discover hidden gems, chill spots, and wild adventures. Handpicked destinations and unforgettable experiences curated for every kind of traveler.",
+  "name": "Starttrips",
+  "description": "Beach breaks, hill escapes and heritage getaways across India, shaped around how you like to travel.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

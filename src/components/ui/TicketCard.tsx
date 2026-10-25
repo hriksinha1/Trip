@@ -3,17 +3,19 @@ import React from "react";
 interface TicketCardProps {
   value: string;
   caption: string;
+  notchColor?: string;
   className?: string;
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({
   value,
   caption,
+  notchColor = "#064e3b",
   className = "",
 }) => {
   return (
     <div
-      className={`relative flex flex-col w-full max-w-[360px] mx-auto filter drop-shadow-md select-none ${className}`}
+      className={`relative flex flex-col w-full max-w-[420px] mx-auto filter drop-shadow-md select-none ${className}`}
     >
       {/* Top half: Clean White with Big Number */}
       <div className="relative bg-white pt-8 pb-7 px-6 sm:px-8 rounded-t-[18px] text-center flex items-center justify-center min-h-[140px] sm:min-h-[160px]">
@@ -26,7 +28,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({
       <div className="relative w-full h-7 bg-white flex items-center overflow-visible">
         {/* Left circular notch cut-out into the ticket */}
         <div
-          className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#0d5059] shadow-inner"
+          className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full shadow-inner transition-colors"
+          style={{ backgroundColor: notchColor }}
           aria-hidden="true"
         />
 
@@ -38,14 +41,15 @@ export const TicketCard: React.FC<TicketCardProps> = ({
 
         {/* Right circular notch cut-out into the ticket */}
         <div
-          className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#0d5059] shadow-inner"
+          className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full shadow-inner transition-colors"
+          style={{ backgroundColor: notchColor }}
           aria-hidden="true"
         />
       </div>
 
       {/* Bottom half: Tinted with Caption */}
       <div className="relative bg-[#F3F2EE] pt-5 pb-6 px-6 sm:px-8 text-center flex-1 flex items-center justify-center">
-        <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-sans font-normal">
+        <p className="text-sm text-neutral-700 leading-relaxed font-sans font-normal">
           {caption}
         </p>
       </div>

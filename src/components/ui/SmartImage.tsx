@@ -27,36 +27,48 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const registeredImage: ImageItem | undefined = imageId ? images[imageId] : undefined;
 
-  const src = customSrc || registeredImage?.src || "";
+  const src = customSrc || registeredImage?.src;
   const alt = customAlt !== undefined ? customAlt : registeredImage?.alt || "";
   const objectPosition = customPosition || registeredImage?.objectPosition || "center";
-  const fallbackGradient = registeredImage?.fallback || "linear-gradient(135deg, #27272a 0%, #3f3f46 100%)";
+  const fallbackGradient =
+    registeredImage?.fallback || "linear-gradient(135deg, #1b382b 0%, #29523e 50%, #182b22 100%)";
+  const label = registeredImage?.label || "";
+  const isPlaceholder = registeredImage?.status === "placeholder" || !src;
+  const isDev = Boolean(import.meta.env?.DEV);
+
   const width = customWidth || registeredImage?.width;
   const height = customHeight || registeredImage?.height;
 
-  if (hasError || !src) {
+  // Typographic Card for placeholders or error states (intentional styling)
+  if (isPlaceholder || hasError || !src) {
     return (
       <div
-        className={`relative overflow-hidden flex items-center justify-center text-white/50 ${className}`}
+        className={`relative overflow-hidden flex flex-col justify-end p-5 select-none ${className}`}
         style={{
           background: fallbackGradient,
           aspectRatio: aspectRatio,
         }}
         role="img"
-        aria-label={alt || "Scenic travel destination"}
+        aria-label={alt || label || "Scenic destination"}
       >
-        <div className="absolute inset-0 bg-black/10" />
-        <svg
-          className="w-10 h-10 text-white/30"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          aria-hidden="true"
-        >
-          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-          <circle cx="12" cy="13" r="3" />
-        </svg>
+        {/* Subtle texture wash */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
+        {/* Typographic Label */}
+        <div className="relative z-10">
+          {label && (
+            <p className="font-display font-medium text-white/95 text-base sm:text-lg tracking-tight drop-shadow-xs">
+              {label}
+            </p>
+          )}
+
+          {/* Dev-only helper informing where the owner can drop verified assets */}
+          {isDev && imageId && (
+            <span className="inline-block mt-1 text-[10px] uppercase font-mono tracking-wider text-white/60 bg-black/40 px-2 py-0.5 rounded-xs">
+              Needs: public/images/{imageId}.webp
+            </span>
+          )}
+        </div>
       </div>
     );
   }

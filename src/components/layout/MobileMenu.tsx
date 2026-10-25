@@ -8,34 +8,36 @@ interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   activeSection: string;
-  onSignUpClick: () => void;
+  onPlanTripClick: () => void;
 }
 
 export const MobileMenu: React.FC<MobileMenuProps> = ({
   isOpen,
   onClose,
   activeSection,
-  onSignUpClick,
+  onPlanTripClick,
 }) => {
-  const menuRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
+    if (!isOpen) return;
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
-          onClose();
-        }
-      };
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-      window.addEventListener("keydown", handleKeyDown);
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-        document.body.style.overflow = "";
-      };
-    }
-  }, [isOpen, onClose]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -44,17 +46,17 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
       id="mobile-navigation"
       role="dialog"
       aria-modal="true"
-      aria-label="Navigation Menu"
-      className="fixed inset-0 z-50 flex flex-col justify-between bg-[#0E0E0E]/95 backdrop-blur-xl p-6 text-white animate-in fade-in duration-250"
+      aria-label="Starttrips Navigation Menu"
+      className="fixed inset-0 z-50 flex flex-col justify-between bg-[#0E0E0E]/95 backdrop-blur-xl p-6 text-white modal-backdrop-animate"
     >
       {/* Top Bar inside sheet */}
       <div className="flex items-center justify-between">
-        <a href="#home" onClick={onClose} aria-label="Nomira home">
+        <a href="#home" onClick={() => onCloseRef.current()} aria-label="Starttrips home">
           <Logo theme="light" />
         </a>
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => onCloseRef.current()}
           aria-label="Close navigation menu"
           className="p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
@@ -70,7 +72,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             <a
               key={link.id}
               href={link.href}
-              onClick={onClose}
+              onClick={() => onCloseRef.current()}
               className={`flex items-center text-xl font-medium px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[48px] ${
                 isActive
                   ? "bg-white text-[#151515] font-semibold"
@@ -89,15 +91,15 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           variant="onPhoto"
           size="lg"
           onClick={() => {
-            onClose();
-            onSignUpClick();
+            onCloseRef.current();
+            onPlanTripClick();
           }}
           className="w-full text-base font-semibold"
         >
-          Sign up
+          Plan my trip
         </Button>
         <p className="text-center text-xs text-neutral-400">
-          Curated journeys · Handpicked escapes
+          Beach breaks, hill escapes and heritage trails across India
         </p>
       </div>
     </div>

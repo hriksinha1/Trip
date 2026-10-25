@@ -1,10 +1,10 @@
 import React from "react";
 
-export type SocialPlatform = "instagram" | "tiktok" | "x" | "facebook";
+export type SocialPlatform = "instagram" | "whatsapp" | "email";
 
 interface SocialIconProps {
   platform: SocialPlatform;
-  href?: string;
+  href: string;
   label?: string;
   className?: string;
 }
@@ -16,48 +16,64 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
   className = "",
 }) => {
   const defaultLabels: Record<SocialPlatform, string> = {
-    instagram: "Follow Nomira on Instagram",
-    tiktok: "Watch Nomira stories on TikTok",
-    x: "Follow Nomira on X",
-    facebook: "Connect with Nomira on Facebook",
-  };
-
-  const defaultUrls: Record<SocialPlatform, string> = {
-    instagram: "https://instagram.com",
-    tiktok: "https://tiktok.com",
-    x: "https://x.com",
-    facebook: "https://facebook.com",
+    instagram: "Visit Starttrips on Instagram",
+    whatsapp: "Chat with Starttrips on WhatsApp",
+    email: "Send an email to Starttrips",
   };
 
   const ariaLabel = label || defaultLabels[platform];
-  const url = href || defaultUrls[platform];
 
   const renderSvg = () => {
     switch (platform) {
       case "instagram":
         return (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
             <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
           </svg>
         );
-      case "tiktok":
+      case "whatsapp":
         return (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.11V9.4a6.33 6.33 0 0 0-.86-.06A6.34 6.34 0 0 0 3 15.68a6.34 6.34 0 0 0 10.82 4.47 6.26 6.26 0 0 0 1.86-4.48V8.78a8.18 8.18 0 0 0 4.77 1.52v-3.45a4.85 4.85 0 0 1-.86-.16z" />
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
           </svg>
         );
-      case "x":
+      case "email":
         return (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-          </svg>
-        );
-      case "facebook":
-        return (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M9.198 21.5h4v-8.01h3.604l.396-3.98h-4V7.5c0-.988.245-1.49 1.52-1.49h2.47V2.5h-3.87c-3.666 0-4.12 2.658-4.12 4.98v2.03H6.5v3.98h2.698v8.01z" />
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
           </svg>
         );
     }
@@ -65,7 +81,7 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
 
   return (
     <a
-      href={url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={ariaLabel}

@@ -3,13 +3,13 @@ import gsap from "gsap";
 
 export const useReveal = () => {
   useEffect(() => {
-    // Respect user's reduced motion preference
     if (typeof window === "undefined") return;
+
+    // Strict reduced motion check
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
-    // Subtle entrance reveals for sections and titles
-    const elementsToReveal = document.querySelectorAll<HTMLElement>("section h2, article");
+    const observedSet = new WeakSet<Element>();
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -21,7 +21,7 @@ export const useReveal = () => {
               {
                 opacity: 1,
                 y: 0,
-                duration: 0.6,
+                duration: 0.55,
                 ease: "power2.out",
                 overwrite: "auto",
               }
@@ -31,13 +31,37 @@ export const useReveal = () => {
         });
       },
       {
-        threshold: 0.1,
-        rootMargin: "0px 0px -40px 0px",
+        threshold: 0.08,
+        rootMargin: "0px 0px -30px 0px",
       }
     );
 
-    elementsToReveal.forEach((el) => observer.observe(el));
+    const observeNewElements = () => {
+      const candidates = document.querySelectorAll<HTMLElement>("section h2, article");
+      candidates.forEach((el) => {
+        if (!observedSet.has(el)) {
+          observedSet.add(el);
+          observer.observe(el);
+        }
+      });
+    };
 
-    return () => observer.disconnect();
+    // Initial query
+    observeNewElements();
+
+    // Mutation observer so elements added or re-rendered later (e.g. filtered destinations) are revealed
+    const mutationObserver = new MutationObserver(() => {
+      observeNewElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
   }, []);
 };

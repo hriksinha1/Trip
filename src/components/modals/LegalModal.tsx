@@ -1,13 +1,19 @@
 import React from "react";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
+import { site } from "../../data/site";
 
 interface LegalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "terms" | "privacy" | "partner" | "help" | null;
+  type: "terms" | "privacy" | null;
 }
 
+/**
+ * NOTE FOR THE OWNER:
+ * The legal texts below accurately reflect the current technical behavior of this website.
+ * Before operating commercially, please have these terms reviewed by legal counsel.
+ */
 export const LegalModal: React.FC<LegalModalProps> = ({
   isOpen,
   onClose,
@@ -18,68 +24,36 @@ export const LegalModal: React.FC<LegalModalProps> = ({
   const contentMap = {
     terms: {
       title: "Terms & Conditions",
-      subtitle: "Nomira Travel Platform Guidelines (Demonstration Only)",
+      subtitle: "General website terms for Starttrips",
       body: (
-        <div className="space-y-3 text-xs sm:text-sm text-neutral-600 leading-relaxed">
+        <div className="space-y-3 text-sm text-neutral-600 leading-relaxed font-sans">
           <p>
-            Welcome to NOMIRA. All itineraries, seasonal trip bookings, discounts, and destinations featured across this website are presented for design demonstration purposes.
+            1. <strong>Indicative Information</strong>: All itineraries, travel packages, sample prices and durations displayed on this website are indicative starting points for planning purposes and may change based on season, availability and your specific preferences.
           </p>
           <p>
-            1. <strong>Reservations & Flexibility</strong>: Sample pricing and booking slots do not reflect live inventory. Real bookings require confirmation via verified concierge channels.
+            2. <strong>No Online Booking or Payments</strong>: Nothing on this website constitutes a binding travel offer, booking confirmation, or payment transaction. No payments are collected on this site.
           </p>
           <p>
-            2. <strong>Intellectual Property</strong>: The Nomira geometric brand mark, typography pairings, and layout structures represent proprietary creative assets.
-          </p>
-          <p>
-            3. <strong>Fair Use</strong>: Photography credits remain with their respective artists on Unsplash.
+            3. <strong>Direct Confirmation</strong>: All arrangements, inclusions, final prices, dates and payment steps must be confirmed directly between you and Starttrips via our official communication channels.
           </p>
         </div>
       ),
     },
     privacy: {
       title: "Privacy Policy",
-      subtitle: "How Nomira handles your travel data and inquiries",
+      subtitle: "How Starttrips respects your inquiry data",
       body: (
-        <div className="space-y-3 text-xs sm:text-sm text-neutral-600 leading-relaxed">
+        <div className="space-y-3 text-sm text-neutral-600 leading-relaxed font-sans">
           <p>
-            At Nomira, we believe privacy is fundamental to an effortless travel experience.
+            1. <strong>Local Message Preparation</strong>: Unless an enquiry endpoint is configured by the site owner, this website processes the enquiry details you type locally in your browser to compose a message that you choose to send via WhatsApp, Email, or Instagram. Those third-party platforms have their own privacy policies.
           </p>
+          {site.enquiryEndpoint && (
+            <p>
+              2. <strong>Enquiry Endpoint</strong>: When submitting an online enquiry, your name, contact and travel preferences are transmitted to Starttrips' configured secure endpoint solely to respond to your inquiry.
+            </p>
+          )}
           <p>
-            1. <strong>Data Handling</strong>: Any information entered into our demo search bars, newsletters, or booking modals is handled client-side in memory and never transmitted to external third parties.
-          </p>
-          <p>
-            2. <strong>No Tracking Telemetry</strong>: Nomira does not use invasive cross-site behavioral cookies or advertising pixels.
-          </p>
-          <p>
-            3. <strong>Support</strong>: For privacy inquiries, please contact our privacy compliance team via our support channels.
-          </p>
-        </div>
-      ),
-    },
-    partner: {
-      title: "Our Partners & Local Guides",
-      subtitle: "Connecting curious travelers with ethical indigenous hosts",
-      body: (
-        <div className="space-y-3 text-xs sm:text-sm text-neutral-600 leading-relaxed">
-          <p>
-            Nomira collaborates directly with local boat captains, community preservation trusts, certified alpine leaders, and family-owned boutique lodges in Bali, Cappadocia, Tokyo, and Raja Ampat.
-          </p>
-          <p>
-            Interested in listing your boutique experience or leading regional expeditions? Reach out to our partnerships collective.
-          </p>
-        </div>
-      ),
-    },
-    help: {
-      title: "Nomira Help Center",
-      subtitle: "Round-the-clock guidance for travelers",
-      body: (
-        <div className="space-y-3 text-xs sm:text-sm text-neutral-600 leading-relaxed">
-          <p>
-            Need assistance with itinerary customisation, baggage logistics, or visa considerations?
-          </p>
-          <p>
-            Our travel specialists are on call 24 hours a day during all active excursions. You can also review our FAQ section on the main page for immediate answers.
+            3. <strong>No Ad Trackers</strong>: This website does not sell your personal information or run behavioral ad-tracking pixels.
           </p>
         </div>
       ),

@@ -1,50 +1,50 @@
-export interface Story {
+export interface EditorialStory {
   id: string;
-  author: string;
-  quote: string;
+  place: string;
+  caption: string;
   imageId: string;
-  rotationDesktop: string; // e.g. -rotate-3
-  offsetDesktop: string;   // e.g. translate-y-2
+  rotationDesktop: string;
+  offsetDesktop: string;
 }
 
-export const stories: Story[] = [
+export const editorialStories: EditorialStory[] = [
   {
-    id: "story-1",
-    author: "Carolina M.",
-    quote: "Our sunrise balloon flight above the canyon was pure magic. Nomira made every detail feel effortless.",
-    imageId: "story_carolina",
+    id: "exp-gokarna",
+    place: "Om Beach, Gokarna",
+    caption: "A crescent-shaped bay with calm mornings and golden evenings.",
+    imageId: "story_gokarna_om",
     rotationDesktop: "-rotate-3",
     offsetDesktop: "translate-y-2",
   },
   {
-    id: "story-2",
-    author: "Alessia Marika",
-    quote: "The guided historic tour was incredible. I learned so much about the culture, architecture, and local life.",
-    imageId: "story_alessia",
+    id: "exp-coorg",
+    place: "Abbey Falls, Coorg",
+    caption: "A short walk through coffee and spice estates leads to the falls.",
+    imageId: "story_coorg_falls",
     rotationDesktop: "rotate-2",
     offsetDesktop: "-translate-y-1",
   },
   {
-    id: "story-3",
-    author: "Aisha Davina",
-    quote: "Nomira made my first solo travel expedition feel completely safe, natural, and wonderfully easy.",
-    imageId: "story_aisha",
+    id: "exp-chikmagalur",
+    place: "Mullayanagiri, Chikmagalur",
+    caption: "Karnataka's highest peak, made for early starts and big views.",
+    imageId: "story_chikmagalur_peak",
     rotationDesktop: "-rotate-1",
     offsetDesktop: "translate-y-1",
   },
   {
-    id: "story-4",
-    author: "Kenji Sato",
-    quote: "Everything was planned to perfection. I could simply immerse myself in the vibrant street culture.",
-    imageId: "story_kenji",
+    id: "exp-hyderabad",
+    place: "Charminar, Hyderabad",
+    caption: "A 16th-century landmark with the old city's bazaars on its doorstep.",
+    imageId: "story_hyderabad_charminar",
     rotationDesktop: "rotate-3",
     offsetDesktop: "-translate-y-2",
   },
   {
-    id: "story-5",
-    author: "Owen Philips",
-    quote: "Hands down the best journey of my life! I will cherish the sunset lagoon views forever.",
-    imageId: "story_owen",
+    id: "exp-goa",
+    place: "Agonda Beach, Goa",
+    caption: "A quieter stretch of South Goa's coast.",
+    imageId: "story_goa_beach",
     rotationDesktop: "-rotate-2",
     offsetDesktop: "translate-y-3",
   },

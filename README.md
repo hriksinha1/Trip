@@ -1,114 +1,121 @@
-# NOMIRA — Travel & Curated Adventures Landing Page
+# Starttrips — Travel & Curated Indian Getaways
 
-NOMIRA is an editorial, cinematic travel brand landing page built with React, TypeScript, Tailwind CSS, and GSAP. It replicates the reference desktop composition, typography hierarchy, and subtle interactions while adapting smoothly to tablet and mobile viewports.
+Production-ready, responsive website for **Starttrips** (Instagram: [@starttrips_](https://www.instagram.com/starttrips_/)), an Indian travel agency specializing in beach breaks, hill escapes, and heritage getaways across India.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: React 19 + Vite + TypeScript
-- **Styling**: Tailwind CSS v4 with custom design tokens and fluid type scales
-- **Typography**: [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) (Display / Headings / Numbers) & [Poppins](https://fonts.google.com/specimen/Poppins) (Body / Labels / Navigation)
-- **Icons**: Lucide React + Custom Inline SVGs for the NOMIRA geometric logo mark and social channels
-- **Animations**: GSAP (+ ScrollTrigger) for subtle entrance reveals, with full `prefers-reduced-motion` compliance
+- **Framework**: React 19 + TypeScript + Vite 8
+- **Styling**: Tailwind CSS v4 with custom responsive layout tokens (`.shell`, `.bleed-pad`)
+- **Typography**: [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) (Display) & [Poppins](https://fonts.google.com/specimen/Poppins) (Body & Indian Rupee `₹` numerals)
+- **Icons**: Lucide React + verified inline SVGs
+- **Animations**: GSAP (+ ScrollTrigger) subtle reveals respecting `prefers-reduced-motion`
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quickstart
 
 ### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Run Locally in Development
+### 2. Run Development Server
 ```bash
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 3. Production Build
+### 3. Build & Test
 ```bash
-npm run build
-```
-Verify output locally with:
-```bash
-npm run preview
+npm run lint    # runs tsc --noEmit
+npm run build   # production build in dist/
+npm run preview # preview production build locally
 ```
 
 ---
 
-## 📁 Project Structure
+## ⚙️ Environment Configuration
 
-```
-├── index.html                   # Entry HTML with Google Fonts, OpenGraph, theme-color, & SVG favicon
-├── vercel.json                  # Single-Page Application (SPA) routing fallback for Vercel
-├── src/
-│   ├── main.tsx                 # React DOM root entry
-│   ├── App.tsx                  # Top-level composition of all 9 semantic sections & modals
-│   ├── index.css                # Base Tailwind layers, tokens, feather masks, & scallop utilities
-│   ├── data/                    # Structured data collections (easy to customize)
-│   │   ├── images.ts            # Central image registry (URLs, dimensions, fallbacks)
-│   │   ├── trips.ts             # Popular trips (Bali, Cappadocia, Tokyo, Raja Ampat)
-│   │   ├── destinations.ts      # Curated destinations across 8 global regions
-│   │   ├── stories.ts           # Traveler polaroid stories & quotes
-│   │   ├── faqs.ts              # Frequently asked questions & answers
-│   │   ├── stats.ts             # Explorer & destination ticket counters
-│   │   └── navigation.ts        # Nav links, explore, & support links
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── Header.tsx       # Over-hero floating header with capsule & scroll transitions
-│   │   │   ├── MobileMenu.tsx   # Accessible mobile overlay sheet with smooth scroll anchors
-│   │   │   └── Footer.tsx       # 4-column footer with newsletter validation & social SVGs
-│   │   ├── sections/
-│   │   │   ├── HeroSection.tsx  # Hero with feathered dissolve mask & Cappadocia dawn photo
-│   │   │   ├── TripSearch.tsx   # Translucent search capsule with date & guest popovers
-│   │   │   ├── PopularTrips.tsx # 4-column trip cards with recommended badge & overflow pager
-│   │   │   ├── BrandStatement.tsx # Generous whitespace, display copy & overlapping avatars
-│   │   │   ├── StatisticsSection.tsx # Teal ocean backdrop with 3 notched ticket cards & count-up
-│   │   │   ├── DestinationExplorer.tsx # Region filter chips & edge-peek horizontal carousel
-│   │   │   ├── TravelerStories.tsx # Tilted polaroid cards with lift & straighten hover
-│   │   │   ├── FAQSection.tsx   # Accordion with single-open logic & role="region"
-│   │   │   └── PromotionalCTA.tsx # Mount Fuji sunset CTA smoothly uniting with the footer
-│   │   ├── ui/
-│   │   │   ├── Button.tsx       # Pill button variants (primary, outline, onPhoto, ghost)
-│   │   │   ├── Chip.tsx         # Interactive filter pill buttons with aria-pressed
-│   │   │   ├── Dialog.tsx       # Accessible modal dialog with focus trap & Esc handling
-│   │   │   ├── Logo.tsx         # Geometric interlocking "N" mark + NOMIRA wordmark
-│   │   │   ├── PolaroidCard.tsx # Rotated polaroid paper cards with paper shadows
-│   │   │   ├── SectionHeading.tsx # Balanced titles with fluid display typography
-│   │   │   ├── SmartImage.tsx   # Lazy/eager image loader with resilient gradient fallback
-│   │   │   ├── SocialIcon.tsx   # Inline SVGs for Instagram, TikTok, X, & Facebook
-│   │   │   └── TicketCard.tsx   # Perforated ticket cards with circular notches & scalloped edge
-│   │   └── modals/
-│   │       ├── BookingModal.tsx # Demo trip reservation confirmation flow
-│   │       ├── AuthModal.tsx    # Demo account creation flow
-│   │       ├── DestinationModal.tsx # Detailed modal for individual destinations
-│   │       └── LegalModal.tsx   # Terms, Privacy Policy, Partners & Help Center
-│   └── hooks/
-│       └── useReveal.ts         # Subtle GSAP reveals respecting reduced-motion
+Add the following optional variables to your `.env` file or in your Vercel Project Settings:
+
+```env
+# Optional: WhatsApp number with country code (e.g. 919876543210).
+# When set, enables 1-click "Send on WhatsApp" button with prefilled enquiry text.
+VITE_WHATSAPP_NUMBER=""
+
+# Optional: Public enquiry email address.
+# When set, enables "Send via Email" mailto link with prefilled subject and body.
+VITE_CONTACT_EMAIL=""
+
+# Optional: Endpoint to POST JSON enquiry payloads to (e.g. Formspree, Make, Zapier webhook).
+# When set, enables direct submission with confirmation inside the dialog.
+VITE_ENQUIRY_ENDPOINT=""
 ```
 
 ---
 
-## 🎨 How to Customize Content & Images
+## 📸 Photo Registry & How to Supply Images
 
-All content is decoupled from layout components and lives inside `src/data/`:
-1. **Swap Photos**: Open `src/data/images.ts` to update image URLs, object positions, or color gradient fallbacks.
-2. **Update Trips**: Open `src/data/trips.ts` to edit trip names, seasonal dates, durations, or prices.
-3. **Change Destinations**: Open `src/data/destinations.ts` to adjust regions, badges, or tag chips.
-4. **Edit Testimonials & FAQs**: Check `src/data/stories.ts` and `src/data/faqs.ts`.
+The image system lives in `src/data/images.ts`. All images currently use intentional, high-contrast typographic placeholder cards. To replace them with your own verified photography:
+
+1. Place your photos in `public/images/<key>.webp` (or `.jpg`).
+2. Update the `src` and set `status: "owner"` in `src/data/images.ts`.
+
+| Image Key | Subject Needed | Expected File Location |
+|---|---|---|
+| `hero` | Wide landscape of Western Ghats ridges or coastal hills | `public/images/hero.webp` |
+| `trip_goa` | Palm-fringed golden beach in Goa | `public/images/trip_goa.webp` |
+| `trip_chikmagalur` | Coffee plantations and green hill trails in Chikmagalur | `public/images/trip_chikmagalur.webp` |
+| `trip_coorg` | Misty hills and estate canopy in Coorg | `public/images/trip_coorg.webp` |
+| `trip_gokarna` | Rocky headland and calm Arabian Sea cove in Gokarna | `public/images/trip_gokarna.webp` |
+| `trip_hyderabad` | Historic Charminar framed by evening bazaars | `public/images/trip_hyderabad.webp` |
+| `stats_ocean` | Top-down aerial view of coastal waters / backwaters | `public/images/stats_ocean.webp` |
+| `dest_goa` | Goa beach sunset | `public/images/dest_goa.webp` |
+| `dest_coorg` | Coorg plantation and waterfall trails | `public/images/dest_coorg.webp` |
+| `dest_chikmagalur` | Western Ghats ridges in Chikmagalur | `public/images/dest_chikmagalur.webp` |
+| `dest_gokarna` | Quiet coves of Gokarna | `public/images/dest_gokarna.webp` |
+| `dest_hyderabad` | Heritage architecture of Hyderabad | `public/images/dest_hyderabad.webp` |
+| `dest_kerala` | Palm-lined backwaters in Alleppey, Kerala | `public/images/dest_kerala.webp` |
+| `dest_hampi` | Historic Vijayanagara ruins and boulders in Hampi | `public/images/dest_hampi.webp` |
+| `dest_meghalaya` | Living root bridges and clear waterfalls in Meghalaya | `public/images/dest_meghalaya.webp` |
+| `dest_ooty` | Rolling Nilgiri tea estates in Ooty | `public/images/dest_ooty.webp` |
+| `promo_mountain` | Western Ghats dusk sunset landscape | `public/images/promo_mountain.webp` |
+| `story_gokarna_om` | Om Beach crescent cove, Gokarna | `public/images/story_gokarna_om.webp` |
+| `story_coorg_falls` | Abbey Falls cascading through forest, Coorg | `public/images/story_coorg_falls.webp` |
+| `story_chikmagalur_peak` | Mullayanagiri peak trail, Chikmagalur | `public/images/story_chikmagalur_peak.webp` |
+| `story_hyderabad_charminar` | Illuminated Charminar, Hyderabad | `public/images/story_hyderabad_charminar.webp` |
+| `story_goa_beach` | Agonda beach at sunset, Goa | `public/images/story_goa_beach.webp` |
 
 ---
 
-## ☁️ Deploying to Vercel
+## 🏷️ Sample Labels Flag
 
-1. Push your repository to GitHub or GitLab.
-2. Log into [Vercel](https://vercel.com) and click **"Add New Project"**.
-3. Import your repository.
-4. Set the build settings:
+To toggle indicative tags on prices:
+- In `src/data/site.ts`, toggle `showSampleLabels: true | false`.
+- When `true`, cards display an "Indicative" pill tag alongside "From ₹X,XXX / person".
+
+---
+
+## 📋 Content & Claims the Owner Must Confirm
+
+Before full commercial launch, the business owner should review:
+1. **Starting Prices & Durations**: Starting costs in `src/data/trips.ts` (e.g. Goa ₹8,499, Chikmagalur ₹5,999, Coorg ₹6,499, Gokarna ₹5,499, Hyderabad ₹4,999).
+2. **Contact Coordinates**: Provide the official WhatsApp business phone number and customer support email in the environment variables.
+3. **Official Logo**: Provide an official SVG/PNG logo and set `logoSrc` in `src/data/site.ts`.
+4. **Third Stats Fact**: Confirm "Enquiry to start: tell us your plan and we'll help from first idea to the trip home" accurately matches your customer onboarding workflow.
+5. **Legal Terms**: Have your legal counsel review the Terms & Conditions and Privacy Policy texts in `src/components/modals/LegalModal.tsx`.
+
+---
+
+## ☁️ Deployment to Vercel
+
+1. Push your repository to GitHub (`github.com/hriksinha1/Trip`).
+2. Log into [Vercel](https://vercel.com) and link the repository.
+3. Settings:
    - **Framework Preset**: `Vite`
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
-   - **Environment Variables**: None required
-5. Click **"Deploy"**. The included `vercel.json` ensures client-side routes and assets resolve correctly.
+   - **Environment Variables**: Set `VITE_WHATSAPP_NUMBER`, `VITE_CONTACT_EMAIL`, and `VITE_ENQUIRY_ENDPOINT` as needed.
+4. Deploy! The included `vercel.json` provides seamless single-page application fallback routing.

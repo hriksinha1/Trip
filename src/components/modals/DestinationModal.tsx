@@ -8,14 +8,14 @@ interface DestinationModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: Destination | null;
-  onBookTrip: () => void;
+  onEnquireDestination: (destination: Destination) => void;
 }
 
 export const DestinationModal: React.FC<DestinationModalProps> = ({
   isOpen,
   onClose,
   destination,
-  onBookTrip,
+  onEnquireDestination,
 }) => {
   if (!destination) return null;
 
@@ -23,7 +23,7 @@ export const DestinationModal: React.FC<DestinationModalProps> = ({
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title={`${destination.name}, ${destination.country}`}
+      title={`${destination.name}, ${destination.state}`}
       description={destination.badge}
     >
       <div className="space-y-4">
@@ -35,13 +35,13 @@ export const DestinationModal: React.FC<DestinationModalProps> = ({
           />
         </div>
 
-        <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed font-sans">
+        <p className="text-sm text-neutral-700 leading-relaxed font-sans">
           {destination.description}
         </p>
 
-        {/* Tags */}
-        <div className="flex items-center gap-2 pt-1">
-          <span className="text-xs font-semibold text-neutral-500">Curated Tags:</span>
+        {/* Tags and State */}
+        <div className="flex items-center gap-2 pt-1 flex-wrap">
+          <span className="text-xs font-semibold text-neutral-500">Highlights:</span>
           {destination.tags.map((tag, i) => (
             <span
               key={i}
@@ -51,7 +51,7 @@ export const DestinationModal: React.FC<DestinationModalProps> = ({
             </span>
           ))}
           <span className="ml-auto text-xs text-neutral-500">
-            Region: <strong className="text-neutral-800">{destination.region}</strong>
+            State: <strong className="text-neutral-800">{destination.state}</strong>
           </span>
         </div>
 
@@ -68,10 +68,10 @@ export const DestinationModal: React.FC<DestinationModalProps> = ({
             size="sm"
             onClick={() => {
               onClose();
-              onBookTrip();
+              onEnquireDestination(destination);
             }}
           >
-            Explore Trips Here
+            Enquire about {destination.name}
           </Button>
         </div>
       </div>
