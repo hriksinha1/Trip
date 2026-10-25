@@ -1,0 +1,6 @@
+{
+  "name": "NOMIRA - Travel & Curated Adventures",
+  "description": "Discover hidden gems, chill spots, and wild adventures. Handpicked destinations and unforgettable experiences curated for every kind of traveler.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

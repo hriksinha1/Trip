@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: #FAF9F6;
+    --surface: #FFFFFF;
+    --text: #151515;
+    --muted: #6B6B6B;
+    --border: #E8E6E0;
+    --tint: #F3F2EE;
+    --footer: #0E0E0E;
+    --footer-muted: #9A9A9A;
+
+    --font-display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
+  body {
+    overflow-x: clip;
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Hide scrollbar while preserving touch & trackpad horizontal scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scalloped ticket bottom edge utility */
+.ticket-scallop {
+  background-image: radial-gradient(circle at 10px 0, transparent 0, transparent 6px, #F3F2EE 6.5px);
+  background-size: 20px 10px;
+  background-repeat: repeat-x;
+}
+
+/* Feathered curved bottom mask for Hero */
+.mask-feather-bottom {
+  mask-image: linear-gradient(to bottom, black 0%, black 86%, rgba(0,0,0,0.6) 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 86%, rgba(0,0,0,0.6) 94%, transparent 100%);
+}
+
+/* Feathered curved top mask for Promo CTA */
+.mask-feather-top {
+  mask-image: linear-gradient(to top, black 0%, black 88%, rgba(0,0,0,0.5) 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, black 0%, black 88%, rgba(0,0,0,0.5) 95%, transparent 100%);
+}
+
+/* Soft card shadow */
+.shadow-soft {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-polaroid {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+/* Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
