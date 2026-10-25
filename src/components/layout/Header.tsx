@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
                   <a
                     key={link.id}
                     href={link.href}
-                    aria-current={isActive ? "page" : undefined}
+                    aria-current={isActive ? "location" : undefined}
                     className={`inline-flex min-h-9 items-center whitespace-nowrap rounded-full px-3.5 text-[13px] xl:text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${isActive ? "bg-white text-[#151515] font-semibold" : "text-white/85 hover:bg-white/10 hover:text-white"}`}
                   >
                     {link.label}
