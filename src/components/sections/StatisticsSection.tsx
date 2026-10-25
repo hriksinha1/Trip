@@ -1,49 +1,46 @@
 import React from "react";
+import { Compass, MapPin, MessageSquareText } from "lucide-react";
 import { SmartImage } from "../ui/SmartImage";
-import { TicketCard } from "../ui/TicketCard";
 import { statsFacts } from "../../data/stats";
+
+const featureIcons = [MapPin, Compass, MessageSquareText];
 
 export const StatisticsSection: React.FC = () => {
   return (
-    <section
-      id="stats"
-      aria-label="Starttrips Service Overview"
-      className="w-full py-8 sm:py-12 scroll-mt-20"
-    >
-      {/* Outer block strictly aligned with shell width */}
-      <div
-        data-shell
-        className="shell relative rounded-[24px] sm:rounded-[32px] overflow-hidden min-h-[500px] lg:min-h-[560px] py-14 sm:py-20 px-4 sm:px-8 flex flex-col justify-center items-center shadow-xl"
-      >
-        {/* Background real ocean / backwaters photo */}
-        <SmartImage
-          imageId="stats_ocean"
-          fill
-          className="object-cover"
-        />
+    <section id="stats" aria-label="How Starttrips helps you plan" className="section w-full">
+      <div data-shell className="shell">
+        <div className="relative isolate overflow-hidden rounded-[var(--radius-block-lg)] shadow-[var(--shadow-block)]">
+          <SmartImage imageId="stats_ocean" alt="Kerala backwaters surrounded by tropical greenery" fill className="object-cover" priority={false} />
+          <div
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,36,34,.48)_0%,rgba(4,36,34,.72)_100%)]"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 px-6 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+            <p className="text-center text-[12px] sm:text-[13px] font-semibold uppercase tracking-[0.16em] text-white mb-7 sm:mb-9">
+              Planned around how you like to travel
+            </p>
 
-        {/* Ambient emerald & deep water gradient wash for contrast */}
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-[#064e3b]/80 via-[#0f766e]/60 to-[#042f2e]/85 backdrop-blur-[1px]"
-          aria-hidden="true"
-        />
-
-        {/* Top small white caption */}
-        <div className="relative z-10 text-center mb-8 sm:mb-12 max-w-xl mx-auto">
-          <p className="text-xs sm:text-sm font-semibold text-white/95 tracking-widest uppercase font-sans drop-shadow-xs">
-            Planned around how you like to travel
-          </p>
-        </div>
-
-        {/* Three Ticket Cards Row (desktop) / Stack (mobile) - Equal Heights */}
-        <div className="relative z-10 w-full max-w-[1080px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-          {statsFacts.map((fact) => (
-            <TicketCard
-              key={fact.id}
-              value={fact.value}
-              caption={fact.caption}
-            />
-          ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 md:divide-x md:divide-white/25">
+              {statsFacts.map((fact, index) => {
+                const Icon = featureIcons[index] ?? Compass;
+                return (
+                  <article key={fact.id} className="flex gap-4 py-5 first:pt-0 last:pb-0 md:flex-col md:items-start md:px-6 md:py-2 md:first:pt-2 md:last:pb-2 md:first:pl-0 md:last:pr-0">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/60 text-white" aria-hidden="true">
+                      <Icon size={18} strokeWidth={1.7} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-display text-[22px] sm:text-[25px] leading-tight font-semibold text-white" style={{ textWrap: "balance" }}>
+                        {fact.value ? <><span className="block text-[clamp(2rem,1.2rem+2vw,3rem)] tabular-nums">{fact.value}</span><span className="block mt-1">{fact.title}</span></> : fact.title}
+                      </h3>
+                      <p className="mt-3 max-w-[34ch] text-[15px] leading-relaxed text-white/95">
+                        {fact.caption}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </section>
