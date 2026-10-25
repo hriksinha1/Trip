@@ -29,8 +29,9 @@ export const StatisticsSection: React.FC = () => {
                       <Icon size={18} strokeWidth={1.7} />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-display text-[19px] sm:text-[25px] leading-tight font-semibold text-white" style={{ textWrap: "balance" }}>
-                        {fact.value ? <><span className="block text-[clamp(1.75rem,1.2rem+2vw,3rem)] md:text-[clamp(2rem,1.2rem+2vw,3rem)] tabular-nums">{fact.value}</span><span className="block mt-1">{fact.title}</span></> : fact.title}
+                      <h3 className="font-display flex flex-wrap items-baseline gap-x-2 leading-tight font-semibold text-white md:block" style={{ textWrap: "balance" }}>
+                        {fact.value && <span className="text-[clamp(1.65rem,1.2rem+1vw,2rem)] tabular-nums md:block md:text-[clamp(2rem,1.2rem+2vw,3rem)]">{fact.value}</span>}
+                        <span className={fact.value ? "md:mt-1 md:block text-[19px] sm:text-[25px]" : "text-[19px] sm:text-[25px]"}>{fact.title}</span>
                       </h3>
                       <p className="mt-2 md:mt-3 max-w-[34ch] text-[14px] sm:text-[15px] leading-relaxed text-white/95">
                         {fact.caption}
