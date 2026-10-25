@@ -11,18 +11,14 @@
     --footer: #0E0E0E;
     --footer-muted: #9A9A9A;
     --brand: #151515;
-
-    /* Three intentional layout tiers: broad surfaces, fluid gutters and readable text. */
     --gutter: clamp(16px, calc(8px + 2.2vw), 48px);
     --shell-max: 1760px;
     --text-max: 840px;
     --measure: 62ch;
-
-    --section-gap: clamp(40px, 2.4vw + 28px, 80px);
-    --heading-gap: clamp(24px, 1.6vw + 16px, 40px);
-    --block-pad: clamp(24px, 2.4vw + 12px, 56px);
-    --card-gap: clamp(16px, 0.8vw + 10px, 24px);
-
+    --section-gap: clamp(40px, calc(2.4vw + 28px), 80px);
+    --heading-gap: clamp(24px, calc(1.6vw + 16px), 40px);
+    --block-pad: clamp(24px, calc(2.4vw + 12px), 56px);
+    --card-gap: clamp(16px, calc(0.8vw + 10px), 24px);
     --radius-block: 24px;
     --radius-block-lg: 28px;
     --radius-card: 16px;
@@ -31,7 +27,6 @@
     --shadow-block: 0 10px 30px -10px rgba(0,0,0,.25);
     --header-h: 76px;
     --header-inset: clamp(16px, 1.6vw, 24px);
-
     --font-display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
@@ -47,10 +42,10 @@
     overflow-x: clip;
     min-height: 100vh;
     min-height: 100svh;
+    margin: 0;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    margin: 0;
   }
 
   h1, h2, h3, .font-display {
@@ -72,7 +67,6 @@
   body { overflow-x: hidden; }
 }
 
-/* Shared content shell. Full-bleed backgrounds can wrap a shell without sharing its width. */
 .shell {
   width: min(calc(100% - 2 * var(--gutter)), var(--shell-max));
   margin-inline: auto;
@@ -80,28 +74,21 @@
 
 .bleed-pad {
   padding-inline: max(var(--gutter), calc((100% - var(--shell-max)) / 2));
+  scroll-padding-inline: max(var(--gutter), calc((100% - var(--shell-max)) / 2));
 }
 
-.section {
-  padding-top: var(--section-gap);
+.section { padding-top: var(--section-gap); }
+.section-heading-gap { margin-bottom: var(--heading-gap); }
+.photo-block { padding-block: var(--block-pad); }
+
+.header-plan-cta { display: none; }
+@media (min-width: 400px) {
+  .header-plan-cta { display: inline-flex; }
 }
 
-.section-heading-gap {
-  margin-bottom: var(--heading-gap);
-}
-
-.photo-block {
-  padding-block: var(--block-pad);
-}
-
-/* Keep horizontal carousels touch-friendly and visually quiet. */
 .no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Feathered image transitions for hero and photo-to-footer promotion. */
 .mask-feather-bottom {
   mask-image: linear-gradient(to bottom, #000 0%, #000 88%, rgba(0,0,0,.55) 95%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 88%, rgba(0,0,0,.55) 95%, transparent 100%);
@@ -113,7 +100,7 @@
 }
 
 .shadow-soft { box-shadow: var(--shadow-card); }
-.shadow-polaroid { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+.shadow-polaroid { box-shadow: 0 10px 25px -5px rgba(0,0,0,.08), 0 8px 10px -6px rgba(0,0,0,.05); }
 
 @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modalScaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
