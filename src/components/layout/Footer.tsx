@@ -142,6 +142,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
               </p>
               {detail.originalTitle && <a href={`https://commons.wikimedia.org/wiki/${encodeURIComponent(detail.originalTitle).replace(/%3A/gi, ":")}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center text-sm font-medium text-[#151515] underline underline-offset-2">View source page</a>}
               {detail.sourceUrl && <a href={detail.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 ml-3 inline-flex min-h-11 items-center text-sm font-medium text-[#151515] underline underline-offset-2">Original image file</a>}
+              {detail.commercialUseVerified !== true && <p className="mt-2 text-xs leading-relaxed text-amber-800">Commercial-use suitability has not been independently verified. Confirm the licence terms before using this image in marketing.</p>}
             </article>
           ))}
           <p className="text-xs text-neutral-500">Images have been cropped and resized. Please review the linked source and licence terms before reuse.</p>
