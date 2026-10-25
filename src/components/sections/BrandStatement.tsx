@@ -9,7 +9,11 @@ const collage = [
   { id: "dest_hampi", label: "Hampi", className: "" },
 ];
 
-export const BrandStatement: React.FC = () => {
+interface BrandStatementProps {
+  onPlanTripClick: () => void;
+}
+
+export const BrandStatement: React.FC<BrandStatementProps> = ({ onPlanTripClick }) => {
   return (
     <section id="about" aria-labelledby="brand-statement-heading" className="section w-full">
       <div data-shell className="shell grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-center gap-8 md:gap-10 lg:gap-[clamp(32px,4vw,72px)]">
@@ -28,7 +32,7 @@ export const BrandStatement: React.FC = () => {
             Beach breaks, hill escapes and heritage trails across India, shaped around how you like to travel.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-4">
-            <Button variant="primary" size="md" onClick={() => document.getElementById("plan")?.scrollIntoView({ behavior: "smooth" })}>
+            <Button variant="primary" size="md" onClick={onPlanTripClick}>
               Plan my trip
             </Button>
             <a href="#destinations" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#151515] underline underline-offset-4 decoration-neutral-300 hover:decoration-[#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] focus-visible:ring-offset-4 rounded-sm">
