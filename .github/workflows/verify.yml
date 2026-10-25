@@ -37,3 +37,15 @@ jobs:
 
       - name: Verify images, content, types, production build and browsers
         run: npm run verify
+
+      - name: Upload visual regression artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: starttrips-visual-regression
+          path: |
+            docs/screenshots/after/**
+            docs/REDESIGN_REPORT.md
+            docs/REDESIGN_METRICS.json
+          if-no-files-found: warn
+          retention-days: 14
