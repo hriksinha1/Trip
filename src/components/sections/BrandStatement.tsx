@@ -41,7 +41,7 @@ export const BrandStatement: React.FC<BrandStatementProps> = ({ onPlanTripClick 
           </div>
         </div>
 
-        <div className="grid h-[clamp(240px,32vw,420px)] min-w-0 grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3">
+        <div className="grid h-[clamp(200px,56vw,340px)] lg:h-[clamp(240px,32vw,420px)] min-w-0 grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3">
           {collage.map((photo) => (
             <figure key={photo.id} className={`relative min-w-0 overflow-hidden rounded-[var(--radius-card)] bg-[#E8E6E0] shadow-soft ${photo.className}`}>
               <SmartImage imageId={photo.id} fill className="object-cover" />
