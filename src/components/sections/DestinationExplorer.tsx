@@ -52,28 +52,38 @@ export const DestinationExplorer: React.FC<DestinationExplorerProps> = ({ onSele
     track.scrollBy({ left: (direction === "left" ? -1 : 1) * track.clientWidth * 0.75, behavior: "smooth" });
   };
 
+  const renderCarouselControls = (className: string) => (
+    <div className={`items-center gap-2 ${className}`}>
+      <button type="button" onClick={() => scrollByAmount("left")} disabled={!canScrollLeft} aria-label="Scroll destinations left" className="inline-flex size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
+        <ChevronLeft className="size-4" aria-hidden="true" />
+      </button>
+      <button type="button" onClick={() => scrollByAmount("right")} disabled={!canScrollRight} aria-label="Scroll destinations right" className="inline-flex size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
+        <ChevronRight className="size-4" aria-hidden="true" />
+      </button>
+    </div>
+  );
+
   return (
     <section id="destinations" aria-labelledby="discover-world-heading" className="section w-full scroll-mt-20">
       <div data-shell className="shell">
-        <SectionHeading
-          id="discover-world-heading"
-          title="Find your kind of escape"
-          subtitle="From sun-soaked beaches to misty hills and heritage cities, explore places across India worth planning a trip around."
-          className="section-heading-gap"
-        />
-        <div role="toolbar" aria-label="Filter destinations by travel style" className="mb-6 flex items-center justify-start gap-2 overflow-x-auto no-scrollbar px-1 pb-2 md:justify-center">
+        <div className="mb-[var(--heading-gap)] flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <SectionHeading
+            id="discover-world-heading"
+            align="left"
+            title="Find your kind of escape"
+            subtitle="From sun-soaked beaches to misty hills and heritage cities, explore places across India worth planning a trip around."
+            className="min-w-0 flex-1"
+          />
+          {renderCarouselControls("hidden shrink-0 sm:flex")}
+        </div>
+
+        <div role="toolbar" aria-label="Filter destinations by travel style" className="mb-5 flex items-center justify-start gap-2 overflow-x-auto no-scrollbar px-1 pb-2">
           {destinationCategories.map((category) => (
             <Chip key={category} label={category} active={activeCategory === category} onClick={() => setActiveCategory(category)} />
           ))}
         </div>
-        <div className="mb-3 flex justify-end gap-2">
-          <button type="button" onClick={() => scrollByAmount("left")} disabled={!canScrollLeft} aria-label="Scroll destinations left" className="inline-flex size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
-            <ChevronLeft className="size-4" aria-hidden="true" />
-          </button>
-          <button type="button" onClick={() => scrollByAmount("right")} disabled={!canScrollRight} aria-label="Scroll destinations right" className="inline-flex size-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
-            <ChevronRight className="size-4" aria-hidden="true" />
-          </button>
-        </div>
+
+        {renderCarouselControls("mb-3 flex justify-end sm:hidden")}
       </div>
 
       <div className="relative w-full">
