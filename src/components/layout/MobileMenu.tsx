@@ -110,7 +110,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, activeS
       </nav>
 
       <div className="flex flex-col gap-3 border-t border-white/10 pt-6">
-        <Button variant="onPhoto" size="lg" onClick={() => { onCloseRef.current(); onPlanTripClick(); }} className="w-full font-semibold">
+        <Button variant="onPhoto" size="lg" onClick={() => {
+          // Keep the hamburger as the enquiry dialog's return-focus target.
+          document.querySelector<HTMLButtonElement>('[aria-label="Open navigation menu"]')?.focus();
+          onCloseRef.current();
+          onPlanTripClick();
+        }} className="w-full font-semibold">
           Plan my trip
         </Button>
         <p className="text-center text-[13px] text-neutral-400">
