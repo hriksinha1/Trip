@@ -76,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
           <nav aria-label="Explore" className="min-w-0">
             <h3 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-white">Explore</h3>
             <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
-              {exploreLinks.map((item) => (
+              {exploreLinks.filter((item) => item.label !== "About").map((item) => (
                 <li key={item.href} >
                   <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
                 </li>
