@@ -23,7 +23,7 @@ export const BrandStatement: React.FC<BrandStatementProps> = ({ onPlanTripClick 
           </span>
           <h2
             id="brand-statement-heading"
-            className="font-display text-[clamp(2.25rem,1.2rem+2.8vw,3.75rem)] font-medium tracking-tight text-[#151515] leading-[1.04] max-w-[15ch]"
+            className="font-display text-[clamp(2rem,1.2rem+2.8vw,3.75rem)] font-medium tracking-tight text-[#151515] leading-[1.04] max-w-[18ch]"
             style={{ textWrap: "balance" }}
           >
             Less planning stress. More stories worth telling.
@@ -41,7 +41,7 @@ export const BrandStatement: React.FC<BrandStatementProps> = ({ onPlanTripClick 
           </div>
         </div>
 
-        <div className="grid h-[clamp(300px,32vw,460px)] min-w-0 grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3">
+        <div className="grid h-[clamp(240px,32vw,420px)] min-w-0 grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3">
           {collage.map((photo) => (
             <figure key={photo.id} className={`relative min-w-0 overflow-hidden rounded-[var(--radius-card)] bg-[#E8E6E0] shadow-soft ${photo.className}`}>
               <SmartImage imageId={photo.id} fill className="object-cover" />
