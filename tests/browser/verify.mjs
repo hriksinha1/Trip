@@ -351,6 +351,36 @@ try {
     ...results,
   };
   fs.writeFileSync("docs/REDESIGN_METRICS.json", JSON.stringify(report, null, 2) + "\n");
+  const metricRows = results.sectionMetrics.map((item) =>
+    "| " + item.viewport + " | " + item.pageHeight + " | " + item.brandHeight + " | " + item.featurePanelHeight + " | " + item.tripsHeight + " | " + item.footerHeight + " |"
+  ).join("\n");
+  const reportMarkdown = [
+    "# Starttrips redesign report",
+    "",
+    "Generated: " + report.generatedAt,
+    "",
+    "## Browser verification summary",
+    "",
+    "- Browser/viewport runs: " + report.summary.browserRuns,
+    "- Horizontal overflow failures: " + report.summary.horizontalOverflowFailures,
+    "- Shell and carousel alignment failures: " + report.summary.shellAlignmentFailures,
+    "- Section metric failures: " + report.summary.sectionMetricFailures,
+    "- Broken visible images: " + report.summary.brokenImages,
+    "- Failed local image responses: " + report.summary.failedImageResponses,
+    "- Runtime/console errors: " + report.summary.runtimeErrors,
+    "- Interaction failures: " + report.summary.interactionFailures,
+    "",
+    "A zero count is only a code/browser result. Review photo accuracy and attribution separately in PHOTO_REVIEW.md.",
+    "",
+    "## Layout metrics",
+    "",
+    "| Viewport (CSS px) | Page height (px) | Brand (px) | Feature panel (px) | Trips (px) | Footer (px) |",
+    "|---:|---:|---:|---:|---:|---:|",
+    metricRows || "| No Chromium measurements collected | — | — | — | — | — |",
+    "",
+    "Fresh screenshots are saved in docs/screenshots/after/. Baseline observations are documented in REDESIGN_AUDIT.md.",
+  ].join("\n");
+  fs.writeFileSync("docs/REDESIGN_REPORT.md", reportMarkdown + "\n");
   console.log("\n=== Starttrips browser verification ===");
   console.log(JSON.stringify(report.summary, null, 2));
 
