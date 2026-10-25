@@ -9,15 +9,15 @@ export const BrandStatement: React.FC = () => {
     <section
       id="about"
       aria-labelledby="brand-statement-heading"
-      className="w-full py-20 sm:py-28 select-none"
+      className="w-full py-20 sm:py-28 select-none overflow-hidden"
     >
       <div
         data-shell
         className="shell relative min-h-[50vh] md:min-h-[60vh] flex flex-col justify-center items-center text-center px-4"
       >
-        {/* Subtle background ambient blur */}
+        {/* Subtle background ambient blur constrained to prevent horizontal viewport overflow */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-neutral-200/40 rounded-full blur-3xl pointer-events-none -z-10"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,100%)] h-[300px] bg-neutral-200/40 rounded-full blur-3xl pointer-events-none -z-10"
           aria-hidden="true"
         />
 
@@ -48,7 +48,8 @@ export const BrandStatement: React.FC = () => {
                 <SmartImage
                   imageId={thumbId}
                   alt=""
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             ))}

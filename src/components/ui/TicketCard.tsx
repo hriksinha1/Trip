@@ -3,66 +3,60 @@ import React from "react";
 interface TicketCardProps {
   value: string;
   caption: string;
-  notchColor?: string;
   className?: string;
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({
   value,
   caption,
-  notchColor = "#064e3b",
   className = "",
 }) => {
   return (
     <div
-      className={`relative flex flex-col w-full max-w-[420px] mx-auto filter drop-shadow-md select-none ${className}`}
+      className={`ticket-card relative flex flex-col w-full max-w-[380px] md:max-w-none mx-auto h-full select-none filter drop-shadow-lg ${className}`}
+      style={
+        {
+          "--nr": "14px",
+          "--notch-y": "150px",
+          WebkitMaskImage: `
+            radial-gradient(circle var(--nr) at 0 var(--notch-y), transparent calc(var(--nr) - 0.5px), black var(--nr)),
+            radial-gradient(circle var(--nr) at 100% var(--notch-y), transparent calc(var(--nr) - 0.5px), black var(--nr)),
+            radial-gradient(circle 6px at 12px 100%, transparent 5.5px, black 6px)
+          `,
+          WebkitMaskSize: "100% 100%, 100% 100%, 24px 100%",
+          WebkitMaskRepeat: "no-repeat, no-repeat, repeat-x",
+          WebkitMaskComposite: "source-in",
+          maskImage: `
+            radial-gradient(circle var(--nr) at 0 var(--notch-y), transparent calc(var(--nr) - 0.5px), black var(--nr)),
+            radial-gradient(circle var(--nr) at 100% var(--notch-y), transparent calc(var(--nr) - 0.5px), black var(--nr)),
+            radial-gradient(circle 6px at 12px 100%, transparent 5.5px, black 6px)
+          `,
+          maskSize: "100% 100%, 100% 100%, 24px 100%",
+          maskRepeat: "no-repeat, no-repeat, repeat-x",
+          maskComposite: "intersect",
+        } as React.CSSProperties
+      }
     >
       {/* Top half: Clean White with Big Number */}
-      <div className="relative bg-white pt-8 pb-7 px-6 sm:px-8 rounded-t-[18px] text-center flex items-center justify-center min-h-[140px] sm:min-h-[160px]">
-        <div className="font-display text-5xl sm:text-6xl font-medium tracking-tight text-[#151515] tabular-nums">
+      <div className="relative bg-white h-[150px] shrink-0 pt-7 pb-5 px-6 sm:px-8 rounded-t-[20px] text-center flex flex-col items-center justify-center">
+        <span className="font-display text-5xl sm:text-6xl font-semibold tracking-tight text-[#151515] tabular-nums">
           {value}
-        </div>
+        </span>
       </div>
 
-      {/* Middle Divider with Left & Right Notches */}
-      <div className="relative w-full h-7 bg-white flex items-center overflow-visible">
-        {/* Left circular notch cut-out into the ticket */}
-        <div
-          className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full shadow-inner transition-colors"
-          style={{ backgroundColor: notchColor }}
-          aria-hidden="true"
-        />
-
-        {/* Dashed divider line spanning between the notches */}
-        <div
-          className="w-full mx-5 border-t border-dashed border-neutral-300"
-          aria-hidden="true"
-        />
-
-        {/* Right circular notch cut-out into the ticket */}
-        <div
-          className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full shadow-inner transition-colors"
-          style={{ backgroundColor: notchColor }}
-          aria-hidden="true"
-        />
+      {/* Dashed Perforation Line at Notch Center */}
+      <div
+        className="relative w-full bg-[#F3F2EE] px-5 py-0 overflow-visible"
+        aria-hidden="true"
+      >
+        <div className="w-full border-t border-dashed border-neutral-300 -translate-y-px" />
       </div>
 
-      {/* Bottom half: Tinted with Caption */}
-      <div className="relative bg-[#F3F2EE] pt-5 pb-6 px-6 sm:px-8 text-center flex-1 flex items-center justify-center">
-        <p className="text-sm text-neutral-700 leading-relaxed font-sans font-normal">
+      {/* Bottom half: Warm Neutral #F3F2EE with Service Caption */}
+      <div className="relative bg-[#F3F2EE] flex-1 px-6 sm:px-8 pt-5 pb-8 flex items-center justify-center text-center">
+        <p className="text-sm sm:text-base text-neutral-700 leading-relaxed font-sans font-normal">
           {caption}
         </p>
-      </div>
-
-      {/* Scalloped Bottom Edge (perforated ticket cutouts) */}
-      <div className="w-full h-3 overflow-hidden" aria-hidden="true">
-        <svg
-          viewBox="0 0 360 12"
-          preserveAspectRatio="none"
-          className="w-full h-full fill-[#F3F2EE]"
-        >
-          <path d="M0,0 L360,0 L360,6 Q350,12 340,6 Q330,12 320,6 Q310,12 300,6 Q290,12 280,6 Q270,12 260,6 Q250,12 240,6 Q230,12 220,6 Q210,12 200,6 Q190,12 180,6 Q170,12 160,6 Q150,12 140,6 Q130,12 120,6 Q110,12 100,6 Q90,12 80,6 Q70,12 60,6 Q50,12 40,6 Q30,12 20,6 Q10,12 0,6 Z" />
-        </svg>
       </div>
     </div>
   );

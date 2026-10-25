@@ -21,7 +21,8 @@ export const PromotionalCTA: React.FC<PromotionalCTAProps> = ({ onPlanTripClick 
         {/* Background Indian hill/mountain sunset photo */}
         <SmartImage
           imageId="promo_mountain"
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
 
         {/* Gradient overlay fading seamlessly into #0E0E0E at the bottom */}

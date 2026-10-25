@@ -31,7 +31,8 @@ export const DestinationModal: React.FC<DestinationModalProps> = ({
         <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden shadow-xs">
           <SmartImage
             imageId={destination.imageId}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
         </div>
 

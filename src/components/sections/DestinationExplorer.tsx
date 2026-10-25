@@ -114,7 +114,9 @@ export const DestinationExplorer: React.FC<DestinationExplorerProps> = ({
                 {/* Full-bleed photo */}
                 <SmartImage
                   imageId={dest.imageId}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  fill
+                  sizes="(min-width: 1280px) 26vw, (min-width: 640px) 34vw, 260px"
+                  className="transition-transform duration-700 ease-out group-hover:scale-105"
                 />
 
                 {/* Scrim Overlay */}

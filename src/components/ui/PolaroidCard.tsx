@@ -26,7 +26,8 @@ export const PolaroidCard: React.FC<PolaroidCardProps> = ({
       <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xs bg-neutral-100">
         <SmartImage
           imageId={imageId}
-          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          fill
+          className="transition-transform duration-500 ease-out group-hover:scale-105"
         />
       </div>
 

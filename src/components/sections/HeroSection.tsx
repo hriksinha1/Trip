@@ -22,7 +22,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSearchSubmit }) => {
         <SmartImage
           imageId="hero"
           priority={true}
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
         />
 
         {/* Ambient Overlay: subtle dark gradient preserving scenery and text contrast */}

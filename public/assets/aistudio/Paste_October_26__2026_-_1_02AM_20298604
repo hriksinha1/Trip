@@ -1,0 +1,198 @@
+You are a senior front-end engineer, image-pipeline owner and QA lead working inside this repository (React 19 + TypeScript + Vite 8 + Tailwind CSS v4 + GSAP + lucide-react, deployed on Vercel). The site is **Starttrips**, an Indian travel agency (Instagram @starttrips_, https://starttrips.vercel.app). Your job in this session: **restore real, correct photographs everywhere the design calls for one, repair the image pipeline that is hiding them, redesign the statistics section, polish the remaining sections, and prove it with measurements.** Do not ask me questions. Where a decision is mine to make (a licence, a real photo, a business fact), make the safest choice, record it, and list it in the final report.
+
+# 0. GROUND TRUTH (already verified in this repository, do not re-derive, do not contradict)
+
+0.1 `src/data/images.ts` has 22 registry entries (lines 18–235). **Every one has `status: "placeholder"` and none has a `src`.** The entries are: `hero`, `trip_goa`, `trip_chikmagalur`, `trip_coorg`, `trip_gokarna`, `trip_hyderabad`, `stats_ocean`, `dest_goa`, `dest_coorg`, `dest_chikmagalur`, `dest_gokarna`, `dest_hyderabad`, `dest_kerala`, `dest_hampi`, `dest_meghalaya`, `dest_ooty`, `promo_mountain`, `story_gokarna_om`, `story_coorg_falls`, `story_chikmagalur_peak`, `story_hyderabad_charminar`, `story_goa_beach`.
+0.2 There is **no `public/` directory** and no image file anywhere in the repo. The path a developer is told to use (`SmartImage.tsx:68`, "Needs: public/images/{imageId}.webp") is a flat path that matches nothing and differs from the folder layout below.
+0.3 `src/components/ui/SmartImage.tsx:36` sets `isPlaceholder = status === "placeholder" || !src`, and `:43` renders a gradient card for it. So even if a file existed, **the registry status alone would still force the gradient.** A real `<img>` is only reachable after someone edits both `src` and `status` by hand. Nothing checks that either is true.
+0.4 **Layering bug independent of photos.** The placeholder branch hard-codes `relative` in its own class string (`SmartImage.tsx:46`), while callers pass `absolute inset-0 w-full h-full` (e.g. `StatisticsSection.tsx:24`, `HeroSection.tsx:25`, `PromotionalCTA.tsx:24`). Both set `position`, `relative` wins, so the placeholder is **in normal flow, not behind the content**. Measured at 1440px: the stats placeholder is 1297×68 inside a 1361×560 section (that is the dark "title strip" in the screenshot, sitting above the caption); the promo placeholder is 1297×68; the hero placeholder is 1361×306 inside an 828px hero. Real `<img>` elements do not have this bug, so it will vanish and re-appear depending on whether a photo loads. Fix it at the source.
+0.5 `SmartImage` problems: `hasError` (`:27`) is never reset when `src` changes; `onError` (`:86`) is silent; registry `sizes` is never used and there is no `srcSet`; an unknown `imageId` silently falls back (`:28`); a placeholder is indistinguishable from a loaded photo to tests (no data attribute).
+0.6 `StatisticsSection.tsx` / `TicketCard.tsx` defects: (a) the notch circles are flat `#064e3b` discs (`TicketCard.tsx:31,44`, `notchColor` from `images.stats_ocean.accent`) painted on top of a **gradient photo wash**, so they are visible dark dots, not cut-outs; (b) the notch centre is the vertical middle of a separate 28px white row (`:28`), but the colour change white → `#F3F2EE` happens at that row's bottom edge, so the circles do not sit on the boundary the dotted line implies; (c) circles overhang 14px each side while the grid gap is 24px at `md` and 32px at `lg` (`StatisticsSection.tsx:39`), so neighbouring circles are only ~4px apart at 1440 and overlap by ~4px at 768 (measured from the render: card 1's right circle ends at x=513, card 2's left circle starts at x=517); (d) the dashed line is `border-dashed` 1px `neutral-300`, almost invisible; (e) the scalloped edge is an SVG stretched with `preserveAspectRatio="none"`, so scallop width changes with card width (distorted at 768 and 320); the card has no bottom corner radius and the scallop colour is a separate fill, not the card's tint; (f) `max-w-[420px] mx-auto` on a grid child at `md+` shrinks cards to ~202px at 768 and leaves them uneven in height at mobile (292 / 270 / 292).
+0.7 Layout state that is **already good and must be kept**: `<main>` is a block (`App.tsx`), `.shell { width: min(100% - 2*var(--gutter), var(--shell-max)) }` (`index.css:47`), measured shell widths 1600 @1920, 1361 @1440, 357 @390; no real horizontal scroll (verified `scrollX` stays 0 at 390). One latent item: the 600px blur blob in `BrandStatement.tsx:19` makes `documentElement.scrollWidth` 495 at 390px wide; it is clipped by `body { overflow-x: clip }` (`index.css:32`) but fix it anyway (§8).
+0.8 Dialog focus bug from the earlier audit is **already fixed** (`Dialog.tsx:21-22` uses `onCloseRef`; effect depends on `[isOpen]`). Do not touch Dialog behaviour.
+0.9 Prices in `src/data/trips.ts` (`priceFrom`) are sample numbers; the UI already labels them "Indicative" via `site.showSampleLabels` (`PopularTrips.tsx:143`, `site.ts:29`). Keep that label. Do not remove it, do not add new prices.
+0.10 **Why the photos are missing (own it in the report):** an earlier instruction told the previous implementation "if you cannot verify a photo, set `status: 'placeholder'` and make no network request". It followed that rule literally for all 22 slots. That rule protected against wrong or unlicensed images but, with no acquisition path, it produced zero photographs. This session replaces it with the pipeline and sourcing ladder in §3 and §5.
+
+# 1. NON-NEGOTIABLES
+
+1.1 **Restore actual photographs.** Changing gradient colours, labels or overlays is not a fix. A gradient is never an acceptable stand-in for a slot that the design shows as a photo.
+1.2 Never reference a file that does not exist in the repo (or, for an explicitly flagged hotlink, a URL you fetched in this session and confirmed returns an image).
+1.3 No fake binaries: no 1×1 pixels, no gradient-only SVG/PNG/WebP exported as "photos", no empty files, no renamed copies of one image across unrelated slots, no solid-colour images created just to satisfy a filename.
+1.4 **Verify the photograph, not the path.** For every image you add, open it (view the pixels) and confirm it actually shows what the registry `alt` says, in the right orientation, uncropped by watermarks, not a logo/map/diagram/portrait, and not a different place (e.g. Dubai or Singapore skyline for Hyderabad, a Thai beach for Gokarna, a European alpine valley for Coorg). Record the check in the provenance file. If it does not match, reject it and find another.
+1.5 **Licensing honesty.** Never claim commercial-use clearance you have not verified. Never invent a credit. Never remove a required attribution. Every non-owner image gets a recorded source URL, author, licence name and licence URL.
+1.6 **No fabricated business facts.** Do not invent a WhatsApp number, e-mail, trip availability, booking confirmation, refund policy, rating, review, testimonial, award or customer count. The enquiry flow stays `site.ts`-driven (`VITE_WHATSAPP_NUMBER`, `VITE_CONTACT_EMAIL`, `VITE_ENQUIRY_ENDPOINT`); preserve validation, prefill, success/error states and the honest "no booking is made yet" wording.
+1.7 **A successful build is not proof.** Acceptance is measured in a real browser (§9), not by `tsc` and `vite build` passing.
+1.8 Keep stack and fonts: React/Vite/Tailwind v4/GSAP, Bricolage Grotesque (display) and Poppins (body). Do not add UI libraries. Dev-only tooling dependencies are allowed (§3.4).
+
+# 2. WORKFLOW (follow in order; after each stage, run `npm run lint` and keep it green)
+
+**Stage 1 – Repository audit.** Run and record: `tree -I node_modules`; every `imageId` use (`grep -rn "imageId\|SmartImage" src`); confirm the 22 keys in 0.1 and the render count (30 `SmartImage` instances at runtime: stories render twice, desktop and carousel); `grep -rn "unsplash\|pexels\|picsum\|placeholder" src index.html`; confirm 0.2–0.6 by reading the cited lines. Write `docs/IMAGE_AUDIT.md` (facts only, no opinions). If any statement in §0 is false in the current tree, say so and adapt.
+
+**Stage 2 – Image inventory and acquisition.** Build the slot table (§4), then fill it using the sourcing ladder (§5). Download/convert into the repo; do not leave remote URLs unless §5 step 2c applies.
+
+**Stage 3 – Pipeline and SmartImage repair (§3, §6).** Manifest generator, registry rewrite, `SmartImage` rewrite, `check:images`.
+
+**Stage 4 – Layout foundation.** Keep `.shell`, `.bleed-pad`, block `<main>`. Add a `fill` mode to `SmartImage` (§6) and replace every `absolute inset-0 w-full h-full` caller. Fix the blur blob (§7.7).
+
+**Stage 5 – Section rebuild (§7).** Hero, trip cards, stats, destination explorer, editorial polaroids, promo CTA.
+
+**Stage 6 – Copy (§10).**
+
+**Stage 7 – Interaction and accessibility (§11).**
+
+**Stage 8 – Image and browser verification (§9.1–9.3).** Playwright against the production build.
+
+**Stage 9 – Build and regression (§9.4).**
+
+**Stage 10 – Visual comparison (§9.5).** Before/after screenshots at the 11 viewports; compare against the user's reference (soft cream page, rounded photographic blocks, white ticket cards over a coastal photo).
+
+**Stage 11 – Final report (§12).**
+
+# 3. IMAGE PIPELINE (required design)
+
+3.1 **Folder layout (the only layout):**
+```
+public/images/hero/            hero.webp
+public/images/trips/           trip_goa.webp trip_chikmagalur.webp trip_coorg.webp trip_gokarna.webp trip_hyderabad.webp
+public/images/destinations/    dest_goa.webp dest_coorg.webp dest_chikmagalur.webp dest_gokarna.webp dest_hyderabad.webp
+                               dest_kerala.webp dest_hampi.webp dest_meghalaya.webp dest_ooty.webp
+public/images/stories/         story_gokarna_om.webp story_coorg_falls.webp story_chikmagalur_peak.webp
+                               story_hyderabad_charminar.webp story_goa_beach.webp
+public/images/sections/        stats_ocean.webp promo_mountain.webp
+```
+File name = registry key + extension (`.webp` preferred; `.jpg`, `.jpeg`, `.png`, `.avif` accepted). Optional responsive variants: `<key>-480.webp`, `<key>-960.webp`, `<key>-1600.webp`. Paths in code are root-absolute (`/images/trips/trip_goa.webp`) because Vite serves `public/` at the site root and Vercel deploys it as-is. Add a `<link rel="preload" as="image" fetchpriority="high" imagesrcset=… imagesizes=…>` for the hero in `index.html` only if the hero file exists (generate it from the manifest, do not hard-code a missing path).
+
+3.2 **Manifest generator** `scripts/generate-image-manifest.mjs` (plain Node ESM, no network). It scans `public/images/**`, matches files to registry keys by basename, reads intrinsic width/height (use the `image-size` devDependency) and byte size, groups `-480/-960/-1600` variants, and writes `src/data/image-manifest.generated.ts`:
+```ts
+export const imageManifest: Record<string, { src: string; srcSet?: string; width: number; height: number; bytes: number }> = { … };
+```
+Hook it as `"predev"`, `"prebuild"` and `"prelint"` in `package.json` so it always runs before `vite`/`tsc`. Commit the generated file (AI Studio and Vercel must work without extra steps). Output is deterministic (sorted keys).
+
+3.3 **Registry** (`src/data/images.ts`): remove hand-set `status`. Each entry keeps `id`, `label`, `alt`, `objectPosition`, `aspect` (e.g. `"4/5"`), `sizes`, `accent`, `fallback`, plus **provenance** the owner must be able to audit:
+```ts
+provenance?: {
+  kind: "owner" | "wikimedia-commons" | "other-licensed" | "ai-generated";
+  title: string; author: string; sourceUrl: string; licence: string; licenceUrl: string;
+  retrievedOn: string;          // ISO date
+  verifiedSubject: string;      // one sentence: what you SAW in the pixels
+  hotlinked?: boolean;          // true only under §5 step 2c
+  commercialUseVerified: boolean;
+}
+```
+`src`, `srcSet`, `width`, `height` come from `imageManifest[key]` merged in at module load. Derived state: `"photo"` if a manifest entry exists, otherwise `"missing"`. **No code path may mark an image as photo without a file.** Export `getImage(key)` that throws in dev and `console.error`s in prod for an unknown key.
+
+3.4 **Validation scripts** (`package.json`): `"check:images": "node scripts/check-images.mjs"` and `"verify": "npm run lint && npm run check:images && npm run build && npm run test:browser"`.
+`check-images.mjs` must: list every registry key and whether its file exists; fail on any `src` that does not resolve to a file; fail on any file in `public/images` not referenced by a key (orphans); warn >400 KB (hero >600 KB); fail if a file is <8 KB or has width <600 px (catches fakes); fail if width/height ratio differs from the registry `aspect` by more than 25 % (cropping-risk) unless an `objectPosition` is set; fail if a non-owner image lacks provenance or has `commercialUseVerified` undefined; fail if two keys map to byte-identical files (catches one photo reused as many); with `IMAGES_STRICT=1` (default for `npm run verify` and Vercel `buildCommand`) fail on **any missing key**. Without strict mode, missing keys print a loud table and exit 0 so a Studio preview still runs. Exit codes and output must be readable by a non-developer.
+
+3.5 **Vercel:** add to `vercel.json` `"buildCommand": "IMAGES_STRICT=1 npm run check:images && npm run build"`, and long-cache headers for `/images/(.*)` (`Cache-Control: public, max-age=31536000, immutable` only if file names are content-hashed; otherwise `max-age=86400, stale-while-revalidate=604800`). Keep the SPA rewrite but **exclude `/images/` and `/assets/`** from it (`"source": "/((?!images/|assets/|.*\\..*).*)"`), so a missing image returns a real 404 instead of the HTML shell (which is what makes broken images look like a "loaded" 200 response).
+
+# 4. SLOT TABLE (fill all 22; "Verify" is what you must SEE in the pixels)
+
+| Key | File | Crop | Min source | Where rendered | Verify |
+|---|---|---|---|---|---|
+| hero | hero/hero.webp | 16:9, subject low-centre, `50% 45%` | 2400×1350 | Hero full block, text over it | Western Ghats misty ridges or Indian coast; quiet sky area behind headline; no people faces dominant |
+| trip_goa | trips/trip_goa.webp | 4:5 | 1000×1250 | Trip card `aspect-[4/5]` | A Goa beach: sand, palms or shacks, sea; not Thai/Bali |
+| trip_chikmagalur | trips/ | 4:5 | 1000×1250 | Trip card | Mullayanagiri/Baba Budangiri ridges or coffee estates with Ghats hills |
+| trip_coorg | trips/ | 4:5 | 1000×1250 | Trip card | Coffee/spice plantation, mist, or Abbey Falls/Raja's Seat |
+| trip_gokarna | trips/ | 4:5 | 1000×1250 | Trip card | Gokarna coast: Om/Kudle/Half Moon beach, rocky headland |
+| trip_hyderabad | trips/ | 4:5 | 1000×1250 | Trip card | Charminar, Golconda or Qutb Shahi tombs. Must be recognisably Hyderabad |
+| stats_ocean | sections/stats_ocean.webp | ~2.2:1 | 2400×1100 | Stats block background | **Coastal/backwater water scene** (Kerala backwaters, Goa/Karnataka coast, tranquil lagoon), calm mid-tone, no strong detail where ticket cards sit |
+| dest_goa … dest_ooty (9) | destinations/dest_*.webp | 6:7 (also cropped 16:10 in modal and 1:1 at 48 px) | 1000×1167 | Explorer card, modal, brand-statement thumbs (goa, coorg, chikmagalur, gokarna) | Each is the named place; subject must survive a centred 16:10 crop and a 48 px circle crop |
+| promo_mountain | sections/promo_mountain.webp | ~2.2:1 | 2400×1100 | Promo CTA background | Indian hills at dusk/sunrise; darker lower third (it fades into `#0E0E0E`) |
+| story_gokarna_om | stories/ | 4:5 | 1000×1250 | Polaroid (rendered twice) | Om Beach crescent bay |
+| story_coorg_falls | stories/ | 4:5 | 1000×1250 | Polaroid | Abbey Falls |
+| story_chikmagalur_peak | stories/ | 4:5 | 1000×1250 | Polaroid | Mullayanagiri summit or trail |
+| story_hyderabad_charminar | stories/ | 4:5 | 1000×1250 | Polaroid | Charminar |
+| story_goa_beach | stories/ | 4:5 | 1000×1250 | Polaroid | Agonda Beach (quiet South Goa strip) |
+
+Do not reuse the same photograph for two slots unless it is a genuine, intentional reuse (e.g. `story_*` and `trip_*` of the same place may share a **source**, but crop them differently and name both files). `check-images` flags byte-identical files.
+
+# 5. SOURCING LADDER (use the first rung that works; record which one in provenance)
+
+1. **Owner photos.** If the repo, `/mnt/user-data/uploads`, or any provided folder contains photographs from the owner or the @starttrips_ account, use them (copy into `public/images/…`, convert with `sharp`/`cwebp`). `kind: "owner"`, `commercialUseVerified: true` **only** if the file is clearly the owner's own upload; otherwise false. Do not scrape Instagram (blocked and against its terms).
+2. **Wikimedia Commons**, only if you can reach it from your environment:
+   a. Search for the specific place. Open the **file page**; record exact title, author, licence and licence URL.
+   b. Accept CC0, public domain, CC BY, CC BY-SA. Reject "non-commercial", "no derivatives", "fair use", "Own work" without a licence template, images with visible watermarks or large people/faces, and anything that is a map, logo, painting or screenshot. Use the original-resolution file, resize to the slot's min size.
+   c. Download into `public/images/…`. Only if download is impossible but the image URL fetches successfully, hotlink the `upload.wikimedia.org` URL, set `hotlinked: true`, and list it in the report as "must be downloaded before launch". Never hotlink Unsplash, Pexels, Google Images, Pinterest, Instagram or stock sites.
+   d. CC BY / CC BY-SA require visible attribution: add a **Photo credits** list in the footer (or a `/credits` modal reachable from the footer) generated from the registry, with author, title, licence and link. CC BY-SA also requires sharing a derivative (crop/resize) under the same licence, so note it in that list.
+3. **Other openly licensed sources you can actually fetch** (Openverse, Unsplash/Pexels via their own downloadable licence pages) are acceptable only if the licence permits commercial use without attribution or you add attribution; record the licence page URL. If the host is not reachable from your environment, skip silently to step 4.
+4. **Image generation, if your tool provides it**, is allowed **only for atmospheric slots that do not claim to be a named real place:** `stats_ocean`, `promo_mountain`, and the `hero` if no real Western Ghats photograph is available. Prompt for a photographic, un-peopled, un-textured landscape with no text, logos or landmarks. Set `kind: "ai-generated"`, write the alt text as a generic scene ("Mist over forested hill ridges at dawn", not "Chikmagalur"), and show "Illustrative imagery" in the photo-credits list. **Never generate** images for slots that name a real place or landmark (all `trip_*`, `dest_*`, `story_*`): an invented Charminar or Om Beach would misrepresent what a customer will see.
+5. **If nothing is obtainable for a slot**, do not fake it. Leave the key `missing`, make `check:images` fail in strict mode, and put the slot, its exact filename, aspect, minimum size, and a one-line shot brief in the report under **"Photos the owner must supply"**. A missing slot must still render correctly (§6) and must be visibly detectable in dev and in the report. It must never pass as done.
+
+You must attempt rungs 1–3 for every slot before using 4 or 5, and say in the report which network hosts were reachable.
+
+# 6. SmartImage REPAIR (replace the component; keep its public props backward-compatible)
+
+6.1 Props: `imageId`, `src?` (override), `alt?`, `className`, `priority`, `objectPosition`, `aspectRatio`, `sizes`, **`fill?: boolean`** (when true the root element is `absolute inset-0 h-full w-full` in **both** photo and missing states; the component, not the caller, owns `position`), `rounded?`. No caller may rely on `className` to set `position` for the placeholder.
+6.2 State machine: `photo` (file exists) → `<img>`; `missing` (no manifest entry) → neutral placeholder; `error` (file exists but fails to load) → same placeholder, **and** `console.error("[SmartImage] failed to load <key> <src>")` once. Reset `error` when `src` changes (`useEffect` keyed on `src`, or `key={src}` on the img). Use `onLoad` to set `data-loaded`.
+6.3 Every root element gets `data-image-key={imageId}` and `data-image-state="photo|missing|error"` (this is what the browser tests read). The `<img>` gets `alt` from the registry (empty `alt=""` for decorative thumbnails and for the duplicate polaroid set hidden at a breakpoint), `width`/`height` from the manifest (prevents layout shift), `srcSet`/`sizes` when variants exist, `loading="lazy"` unless `priority`, `fetchPriority="high"` only for the hero, `decoding="async"`, and `referrerPolicy="no-referrer"` only for hotlinked images.
+6.4 Missing-state visuals: keep the dark gradient card **but** render it with the fixed positioning rules above, show the `label` only when the element is large enough to hold it (≥ 120 px wide), and in dev also show the exact expected path (`public/images/<folder>/<key>.webp`), taken from the registry's folder map, not a flat guess. In production show no developer text. Dev mode additionally draws a 2 px red outline on missing images and logs one grouped `console.warn` listing every missing key on first render.
+6.5 Unknown `imageId` → `console.error` in dev and prod, never silent.
+6.6 Do not start extra network requests, do not lazy-load the hero, and do not wrap the `<img>` in an extra element that changes layout.
+
+# 7. SECTION SPECS
+
+Use `.shell` for the outer block of every photographic section and keep the existing rounded radii (`24px` mobile, `28px` ≥ 640 px).
+
+7.1 **Hero** (`HeroSection.tsx`). `<SmartImage imageId="hero" fill priority>`. Overlay stays subtle (`from-black/35 via-black/25 to-black/60`); if the delivered photo is bright, raise to `/45`. Height `min-h-[560px] h-[92svh] max-h-[860px]`; at ≤ 480 px wide use `min-h-[620px]`. Keep the bottom feather mask but confirm in a real browser that it does not hide the search capsule shadow. H1 and search stay centred; add `text-shadow` fallback only if contrast < 4.5:1 on the measured pixel behind the text (§11).
+
+7.2 **Trip cards** (`PopularTrips.tsx`). Image frame stays `aspect-[4/5]` with `bg-neutral-100`; `<SmartImage fill sizes="(min-width:1280px) 25vw, (min-width:640px) 50vw, 78vw">`. Keep the carousel/pager, "Indicative" price label, footnote, and "Enquire Now" prefill. Rename the "Recommended" badge to "Featured" unless the owner has defined recommendation criteria.
+
+7.3 **Statistics section – full redesign of `StatisticsSection.tsx`, `TicketCard.tsx`, `stats.ts`.**
+Layer order, bottom to top (explicit `z-index`, all inside one `isolate` stacking context): `z-0` photo (`SmartImage fill`, `stats_ocean`) → `z-[1]` tonal overlay (single `linear-gradient(to bottom, rgba(4,47,46,.35), rgba(4,47,46,.55))`, **not** three stacked washes; if the photo is already dark, reduce) → `z-[2]` content. The photo must be clearly visible between and around the cards; the overlay may tint but never hide it. Section spacing `py-14 sm:py-20`; the block keeps `.shell`, radius, `shadow-xl`, `overflow-hidden`.
+- **Caption strip:** the current dark bar is the placeholder bug in 0.4. Remove it. The only text above the cards is a small centred eyebrow, `font-sans text-xs uppercase tracking-[0.18em] text-white/90`, with `mb-8 sm:mb-12`, and it must sit **inside the content layer, centred over the same width as the card grid**, never as a full-width coloured bar. If the owner wants a location label (e.g. "Kerala backwaters"), render it as a small pill at the bottom-left of the photo (`absolute bottom-4 left-4`, only when the registry entry has `location` and provenance says the place is real; omit for AI-generated imagery).
+- **Ticket card:** a single element with one background per half, shaped with **CSS mask** so notches and scallops are true cut-outs through which the photo shows. Spec:
+  - Wrapper: `filter: drop-shadow(0 8px 20px rgba(0,0,0,.18))` (a mask clips `box-shadow`, so the shadow must be on a parent via `filter`).
+  - Card: `--r: 18px; --n: 14px` (notch radius), `--notch-y: <exact y of the top/bottom boundary>`. Top half `#fff`, bottom half `var(--tint)`/`#F3F2EE`, both inside the same element so the boundary is a single pixel row (use `grid-template-rows: auto auto` with the divider as a 0-height row, or a `linear-gradient(#fff 0 var(--split), #F3F2EE var(--split) 100%)`, so `--notch-y` and the colour change are the same number).
+  - Mask: `radial-gradient(circle var(--n) at 0 var(--notch-y), #0000 98%, #000) left/51% 100% no-repeat, radial-gradient(circle var(--n) at 100% var(--notch-y), #0000 98%, #000) right/51% 100% no-repeat` for the side notches, composited with a bottom scallop `radial-gradient(circle at 50% 100%, #0000 7px, #000 7.5px) bottom/20px 12px repeat-x` (fixed pixel pitch, **not** a stretched SVG; centre it with `background-position: 50% 100%` so the first and last scallops are symmetric). Provide the `-webkit-mask` equivalents. If two-layer mask compositing misbehaves in Safari, fall back to `mask-composite: intersect` / `-webkit-mask-composite: source-in` and **test it** in WebKit (Playwright `webkit`); if it still fails, draw the notches as clip-path polygons.
+  - Dotted divider: `border-top: 2px dotted rgba(21,21,21,.22)` positioned at `--notch-y`, inset `calc(var(--n) + 10px)` from each side so it starts and ends clear of the notches, `aria-hidden`.
+  - Number: `font-display text-5xl sm:text-6xl font-medium tabular-nums`, optically centred in the top half. Caption: `text-sm text-neutral-700 leading-relaxed text-balance`, max 3 lines at 320 px.
+  - Dimensions: all three cards equal height at every width (`items-stretch`, caption area `flex-1`, `min-h` on the caption half so 2- and 3-line captions do not change card height at ≥ 768 px); `max-w-[420px]` only at < 768 px (stack), and **no `max-w` at ≥ 768 px** (cards share the grid equally; gap `gap-6 lg:gap-10` so notch discs never come within 16 px of the next card).
+- **Responsive:** < 768 px single column, cards ≤ 420 px wide, centred, gap 20; ≥ 768 px three columns inside the `.shell` block with horizontal padding `clamp(16px, 4vw, 56px)`; the grid is centred, `max-w-[1200px]`. Measure and assert equal card heights and equal gutters.
+- **Truthful figures:** keep the existing derivation in `stats.ts` (9 = `destinations.length`, 5 = `destinationCategories` without "All", 1 = single enquiry form). Rewrite the three captions to be factual and service-oriented, with no superlatives, no claims about customers or trips completed: `9` "Indian destinations we plan trips for"; `5` "Travel styles to choose from, from beaches to heritage"; `1` "Enquiry form to tell us your plan, with no payment taken". Add a unit-style check in `check-images`/a tiny `scripts/check-stats.mjs` that fails if the numbers on screen differ from the data, so the stats cannot drift into marketing fiction.
+- **Semantics:** render as `<ul>` of `<li>`, each with the number and caption in one `<p>`-pair; the decorative notches and scallops add no DOM text and no `role`. Contrast: number `#151515` on white (≥ 15:1), caption `#404040` on `#F3F2EE` (≥ 8:1).
+
+7.4 **Destination explorer** (`DestinationExplorer.tsx`). Cards keep `aspect-[6/7]` and the `clamp(260px,26vw,380px)` width; `<SmartImage fill sizes="(min-width:1280px) 26vw, 260px">`. The scrim stays `from-black/85 via-black/35 to-black/10` and must keep the text ≥ 4.5:1 over **every** delivered photo (test the brightest). Filter chips, carousel arrows, `bleed-pad`, and `DestinationModal` (16:10 image) keep working; the modal image uses a different crop, so confirm each destination photo reads at 16:10.
+
+7.5 **Editorial polaroids** (`TravelerStories.tsx`, `PolaroidCard.tsx`). The 5 stories render twice (xl row at ≥ 1280 px, carousel below). Render only the set that is visible (use `useMediaQuery` or CSS `content-visibility`/`hidden` plus `loading="lazy"` so the hidden set does not download); at minimum, the hidden set's images must be `loading="lazy"` and must not be counted as failures by tests. Keep the rotations/offsets; verify no card is clipped by `overflow-x-clip` at 1280, 1366, 1440. Keep "Editorial inspiration, not customer reviews." and the "Inspiration" tag.
+
+7.6 **Promo CTA** (`PromotionalCTA.tsx`). `<SmartImage imageId="promo_mountain" fill>`; overlay `from-black/50 via-black/30 to-[#0E0E0E]`; the bottom must visually join the footer `#0E0E0E` with no seam (measure the pixel colour at the shell's bottom edge, ±3 per channel). Keep `Plan My Trip` opening the enquiry modal.
+
+7.7 **Brand-statement thumbnails** (`BrandStatement.tsx`). 48 px circles use `SmartImage fill alt=""` of the four destination photos; check the subject survives a circular crop, otherwise set per-key `objectPosition`. Fix the blur blob: make it `max-w-[min(600px,100%)]`, or `inset-x-0 mx-auto`, so `documentElement.scrollWidth === clientWidth` at 320/360/390.
+
+# 8. TOKENS AND LAYOUT
+
+Keep CSS variables in `index.css`; add `--radius-card: 18px`, `--radius-block: 24px`, `--radius-block-lg: 28px`, `--ticket-notch: 14px`, `--tint`, `--shadow-block`, `--shadow-card`; replace repeated literals with them. Do not introduce a Tailwind config file. No duplicate `relative`/`absolute` in any class string; add an ESLint-free grep check in `verify` for the pattern `relative[^"]*absolute|absolute[^"]*relative` in `src/**/*.tsx`.
+
+# 9. VERIFICATION (write `tests/browser/verify.mjs`, run with Playwright against `vite preview`; run via `npm run test:browser`)
+
+9.1 **Image states.** At each viewport, after scrolling the page top-to-bottom in steps (to trigger lazy loading) and waiting for network idle: for every `[data-image-key]` that is visible (`offsetParent !== null`, non-zero box): assert `data-image-state="photo"`, the child `img.complete === true` and `img.naturalWidth > 0`, and its rendered box is at least 80 % of its container (catches the §0.4 strip bug). Collect and print any `missing` or `error` keys. Fail if any visible slot is not a photo (unless that key is explicitly listed under "Photos the owner must supply", in which case print it as an expected gap and exit non-zero in strict mode).
+9.2 **Network.** Record all responses: fail on any 4xx/5xx for `/images/*`; fail if a request for an image returns `text/html` (SPA rewrite swallowing a 404); report total image bytes per viewport (budget: ≤ 2.5 MB on first load at 390 px, excluding lazy images below the fold).
+9.3 **Layout invariants** at 320, 360, 390, 430, 768, 820, 1024, 1280, 1440, 1920, 2560: `scrollX` stays 0 after `scrollTo(500,0)`; `documentElement.scrollWidth <= clientWidth`; shell left/right gutters equal (±1 px); `main` width = viewport width; stats cards equal height and equal width within a row; no console errors or warnings other than blocked fonts when offline; no element overlaps the sticky header at scroll 0; hero text contrast sampled from a screenshot ≥ 4.5:1.
+9.4 **Regression:** open the enquiry modal from hero search, trip card, destination modal and promo CTA; type into every field with real keystrokes; assert the prefill is correct; submit with no `VITE_ENQUIRY_ENDPOINT` and confirm the honest fallback (no fake success); press Esc and confirm focus returns; with `VITE_WHATSAPP_NUMBER` unset, confirm no `wa.me` link exists anywhere; keyboard-tab through the page once and confirm no focus trap outside dialogs. Run `npm run lint`, `npm run check:images`, `npm run build`, and `npm run preview` against the real `dist/`.
+9.5 **Visual comparison.** Save before/after screenshots at the 11 viewports to `docs/screenshots/` (`before/` is the current gradient state, taken **first**). Open at least the hero, stats, trips, destinations, stories and promo screenshots and compare to the reference: cream page, rounded photographic blocks, white ticket cards over a coastal photo, polaroid fan, dark footer. Write the differences you see and what you changed. Do not claim a section is done because an image loaded; claim it when the screenshot looks right.
+9.6 Browsers: run the suite in Playwright **chromium and webkit** (and firefox if installed). Specifically verify in WebKit: CSS `mask` on tickets, `svh` units, `backdrop-blur` on badges, `aspect-ratio`, `line-clamp`. Provide `@supports not (mask-image: radial-gradient(#000,#000))` fallbacks (plain rounded white card without notches) so older browsers degrade gracefully.
+
+# 10. COPY (concise, Indian-travel voice, no invented claims)
+
+Hero H1: keep "Your next great getaway starts here." Sub: "Beach breaks, hill stations and heritage cities across India. Tell us your plan and we will shape the trip." Eyebrows: "Travel inspiration", "Popular getaways" → "Featured getaways", "Travel made simple". Brand statement: keep "Less planning stress. More stories worth telling." Buttons: "Plan my trip", "Enquire now", "Explore destinations" (sentence case, consistent). Promo: "Make your next getaway count" / "Beach breaks, hill escapes and heritage trails across India, planned around you." No "best", "#1", "guaranteed", "trusted by", "luxury", "lowest price", ratings, or customer numbers anywhere. Keep "Prices are indicative starting points per person and may change. Enquire for current rates." Do not alter legal/privacy text beyond fixing typos. FAQ answers must not promise refunds, availability or confirmed bookings.
+
+# 11. ACCESSIBILITY AND PERFORMANCE
+
+Photos that carry meaning have specific alt text from the registry; decorative duplicates and thumbnails use `alt=""`. Missing/error placeholders keep `role="img"` + `aria-label` so the page remains understandable. Text over photos ≥ 4.5:1 (large text ≥ 3:1); fix with overlay, not by changing copy size. Visible focus rings on every interactive element (keep existing `focus-visible:ring-2`). Carousels remain keyboard-scrollable (`tabIndex=0`, labels) and respect `prefers-reduced-motion` (already in `index.css`; keep GSAP reveal disabled when reduced motion is set). Touch targets ≥ 44×44 px for primary actions (pager dots may stay 8 px visually but must have a 44 px hit area via padding). Performance: hero `fetchPriority="high"` + preload, every other image lazy, explicit `width`/`height` on every `<img>` (CLS ≈ 0), no image > 400 KB (hero > 600 KB), `sizes` accurate. Fonts: keep `display=swap`; add `font-display` fallback metrics only if CLS > 0.05 in a Lighthouse-style trace.
+
+# 12. FINAL REPORT (print at the end and save as `docs/IMAGE_REPORT.md`)
+
+1. Root cause, in plain English: why no photo appeared (§0.1–0.5) and the strip bug (§0.4).
+2. A table of all 22 keys: file path, bytes, intrinsic size, rung used (§5), provenance kind, licence, `commercialUseVerified`, **what you saw in the pixels**, `OK / MISSING`.
+3. "Photos the owner must supply" list (exact filenames, aspect, size, shot brief) and "Hotlinked images to download before launch" list.
+4. Photo-credits list contents added to the site (or "none required").
+5. Files changed (grouped), scripts added, dependencies added (only dev-only).
+6. Test results: viewport × browser matrix for §9.1–9.3 with pass/fail, bytes per viewport, any known gap.
+7. Before/after screenshot paths and your honest visual verdict for each of: hero, trip cards, stats, destinations, polaroids, promo.
+8. What you could **not** verify (for example: live Instagram content, rights to any photo not marked `commercialUseVerified: true`, real WhatsApp/e-mail/endpoint).
+9. Deployment steps for Vercel: env vars to set, `IMAGES_STRICT`, how to add a new photo (drop file in the right folder, run `npm run check:images`, commit).
+
+# 13. DEFINITION OF DONE
+
+All of the following, or the task is **not done**: (a) all 22 slots render a real photograph (`data-image-state="photo"`, `naturalWidth > 0`), or the exact missing slots are listed as owner-supplied and strict mode fails on them; (b) every path in code resolves to a real file; (c) no 4xx image responses and no HTML-as-image responses; (d) the stats section matches §7.3, with notches that show the photo through them, equal-height cards, no stray strip, and 9/5/1 derived from data; (e) §9.3 invariants pass at all 11 viewports in chromium and webkit; (f) enquiry flow, modals and `site.ts` behaviour unchanged and tested; (g) `npm run verify` passes on a clean clone after `npm install`; (h) the report in §12 is complete and does not claim anything you did not measure.

@@ -101,7 +101,9 @@ export const PopularTrips: React.FC<PopularTripsProps> = ({ onEnquireNow }) => {
                   )}
                   <SmartImage
                     imageId={trip.imageId}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    fill
+                    sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 78vw"
+                    className="transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
 

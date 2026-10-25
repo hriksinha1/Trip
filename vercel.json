@@ -1,7 +1,8 @@
 {
+  "buildCommand": "IMAGES_STRICT=1 npm run check:images && npm run build",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!images/|assets/).*)",
       "destination": "/index.html"
     }
   ]
