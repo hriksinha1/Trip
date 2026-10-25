@@ -155,6 +155,23 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
         const button = card.querySelector("button");
         return button ? Math.round(button.getBoundingClientRect().height) : null;
       });
+      const tripCardGeometry = tripCards.map((card) => {
+        const cardRect = card.getBoundingClientRect();
+        const button = card.querySelector("button");
+        const price = card.querySelector(".border-t");
+        return {
+          top: Math.round(cardRect.top),
+          height: Math.round(cardRect.height),
+          buttonTop: button ? Math.round(button.getBoundingClientRect().top - cardRect.top) : null,
+          priceTop: price ? Math.round(price.getBoundingClientRect().top - cardRect.top) : null,
+        };
+      });
+      const touchTargets = Array.from(document.querySelectorAll(
+        '#destinations [role="toolbar"] button, #destinations button[aria-label^="Scroll destinations"], #trips button[aria-label="Previous trip"], #trips button[aria-label="Next trip"], #trips button[aria-label^="Go to trip"], header nav a, #mobile-navigation nav a'
+      )).filter(isVisible).map((element) => ({
+        label: element.getAttribute("aria-label") || element.textContent?.trim() || "navigation target",
+        height: Math.round(element.getBoundingClientRect().height),
+      }));
       const storyHeadings = Array.from(document.querySelectorAll("#stories article h3")).map((element) => ({
         text: element.textContent?.trim() || "",
         height: element.getBoundingClientRect().height,
@@ -180,6 +197,8 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
         featurePanelHeight: rect(featurePanel)?.height ?? null,
         statsTicketCards,
         tripActionHeights,
+        tripCardGeometry,
+        touchTargets,
         storyHeadings,
         sectionMetrics,
       };
@@ -225,6 +244,31 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
     const uniqueButtonHeights = [...new Set(measured.tripActionHeights.filter((height) => height !== null))];
     if (measured.tripActionHeights.length && uniqueButtonHeights.some((height) => height < 42)) {
       results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Trip enquiry button is below the 44px target.", heights: measured.tripActionHeights });
+    }
+    if (viewport.width <= 768) {
+      const shortTargets = measured.touchTargets.filter((target) => target.height < 44);
+      if (shortTargets.length) {
+        results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Important navigation, filter or pager target is below 44px.", targets: shortTargets });
+      }
+    }
+    if (viewport.width >= 640 && measured.tripCardGeometry.length > 1) {
+      const rows = new Map();
+      for (const geometry of measured.tripCardGeometry) {
+        const key = geometry.top;
+        if (!rows.has(key)) rows.set(key, []);
+        rows.get(key).push(geometry);
+      }
+      for (const [rowTop, row] of rows) {
+        if (row.length < 2) continue;
+        const heights = row.map((item) => item.height);
+        const buttonTops = row.map((item) => item.buttonTop ?? 0);
+        const priceTops = row.map((item) => item.priceTop ?? 0);
+        if (Math.max(...heights) - Math.min(...heights) > 2 ||
+            Math.max(...buttonTops) - Math.min(...buttonTops) > 2 ||
+            Math.max(...priceTops) - Math.min(...priceTops) > 2) {
+          results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Trip card rows do not align their card, price and action footers.", rowTop, row });
+        }
+      }
     }
 
     if (engineName === "Chromium") {
