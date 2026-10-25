@@ -26,6 +26,7 @@ const results = {
   imageResponses: [],
   runtimeErrors: [],
   sectionMetrics: [],
+  sectionMetricFailures: [],
   interactionFailures: [],
 };
 
@@ -76,6 +77,9 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
   const failedImageResponses = [];
 
   page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") pageErrors.push(`console: ${message.text()}`);
+  });
   page.on("response", (response) => {
     const url = response.url();
     if (response.status() >= 400 && /\/images\/.*\.(webp|png|jpe?g|avif)(\?|$)/i.test(url)) {
@@ -184,6 +188,15 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
     if (measured.documentWidth > viewport.width) {
       results.overflowFailures.push({ engineName, viewport, documentWidth: measured.documentWidth });
     }
+    const horizontalScrollX = await page.evaluate(() => {
+      window.scrollTo(500, 0);
+      const x = window.scrollX;
+      window.scrollTo(0, 0);
+      return x;
+    });
+    if (horizontalScrollX > 0) {
+      results.overflowFailures.push({ engineName, viewport, issue: "Horizontal window scroll is possible", scrollX: horizontalScrollX });
+    }
     for (const image of measured.visibleImages) {
       if (image.state !== "photo" || !image.isImg || image.naturalWidth <= 0) {
         results.brokenImages.push({ engineName, viewport: viewport.width, ...image });
@@ -215,7 +228,46 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
     }
 
     if (engineName === "Chromium") {
-      results.sectionMetrics.push({ viewport: viewport.width, pageHeight: measured.documentHeight, brandHeight: Math.round(measured.brandHeight || 0), featurePanelHeight: Math.round(measured.featurePanelHeight || 0), sections: measured.sectionMetrics });
+      const sectionHeight = (selector) => measured.sectionMetrics.find((item) => item.selector === selector)?.height ?? 0;
+      const tripsHeight = sectionHeight("#trips");
+      const footerHeight = sectionHeight("#contact");
+      if (viewport.width >= 1280 && measured.brandHeight > 560) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "brand", actual: Math.round(measured.brandHeight), target: 560 });
+      }
+      if (viewport.width >= 1280 && measured.featurePanelHeight > 360) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "feature panel", actual: Math.round(measured.featurePanelHeight), target: 360 });
+      }
+      if (viewport.width === 390 && measured.featurePanelHeight > 520) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "feature panel", actual: Math.round(measured.featurePanelHeight), target: 520 });
+      }
+      if (viewport.width === 390 && footerHeight > 720) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "footer", actual: footerHeight, target: 720 });
+      }
+      if (viewport.width === 768 && tripsHeight > 1250) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "trips", actual: tripsHeight, target: 1250 });
+      }
+      if (viewport.width === 1024 && tripsHeight > 1350) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "trips", actual: tripsHeight, target: 1350 });
+      }
+      if (viewport.width === 1440 && tripsHeight > 1000) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "trips", actual: tripsHeight, target: 1000 });
+      }
+      if (viewport.width === 1440 && measured.documentHeight > 6700) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "page height", actual: measured.documentHeight, target: 6700 });
+      }
+      if (viewport.width === 390 && measured.documentHeight > 7200) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "page height", actual: measured.documentHeight, target: 7200 });
+      }
+      await page.evaluate(() => window.scrollTo(0, 300));
+      await page.waitForTimeout(230);
+      const scrolledHeaderBox = await page.locator('[data-header-scrolled="true"]').boundingBox().catch(() => null);
+      const heroShellBox = await page.locator("#home [data-shell]").boundingBox().catch(() => null);
+      if (scrolledHeaderBox && heroShellBox &&
+          (Math.abs(scrolledHeaderBox.x - heroShellBox.x) > 2 || Math.abs(scrolledHeaderBox.width - heroShellBox.width) > 2)) {
+        results.shellAlignmentFailures.push({ engineName, viewport: viewport.width, name: "scrolled header shell", header: scrolledHeaderBox, hero: heroShellBox });
+      }
+      await page.evaluate(() => window.scrollTo(0, 0));
+      results.sectionMetrics.push({ viewport: viewport.width, pageHeight: measured.documentHeight, brandHeight: Math.round(measured.brandHeight || 0), featurePanelHeight: Math.round(measured.featurePanelHeight || 0), tripsHeight, footerHeight, sections: measured.sectionMetrics });
       if (captureScreenshot) {
         await page.screenshot({ path: path.join(screenshotDir, `viewport-${viewport.width}.png`), fullPage: true });
       }
@@ -289,6 +341,7 @@ try {
       browserRuns: results.browserRuns.length,
       horizontalOverflowFailures: results.overflowFailures.length,
       shellAlignmentFailures: results.shellAlignmentFailures.length,
+      sectionMetricFailures: results.sectionMetricFailures.length,
       brokenImages: results.brokenImages.length,
       failedImageResponses: results.imageResponses.length,
       runtimeErrors: results.runtimeErrors.length,
@@ -303,6 +356,7 @@ try {
   const failureKeys = [
     "horizontalOverflowFailures",
     "shellAlignmentFailures",
+    "sectionMetricFailures",
     "brokenImages",
     "failedImageResponses",
     "runtimeErrors",
