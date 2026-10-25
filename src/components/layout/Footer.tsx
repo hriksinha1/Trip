@@ -6,6 +6,9 @@ import { Dialog } from "../ui/Dialog";
 import { exploreLinks, supportLinks } from "../../data/navigation";
 import { site } from "../../data/site";
 import { images } from "../../data/images";
+import { trips } from "../../data/trips";
+import { destinations } from "../../data/destinations";
+import { editorialStories } from "../../data/stories";
 import provenanceData from "../../data/provenance.json";
 
 interface FooterProps {
@@ -30,8 +33,15 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
   const [photoCreditsOpen, setPhotoCreditsOpen] = useState(false);
 
   const photoCredits = useMemo(() => {
+    const usedImageIds = new Set([
+      "hero", "stats_ocean", "promo_mountain",
+      ...trips.filter((trip) => trip.featured).map((trip) => trip.imageId),
+      ...destinations.map((destination) => destination.imageId),
+      ...editorialStories.map((story) => story.imageId),
+    ]);
     const seen = new Set<string>();
     return Object.entries(images).flatMap(([id, image]) => {
+      if (!usedImageIds.has(id)) return [];
       const detail = provenance[id];
       if (!detail?.sourceUrl) return [];
       let dedupeKey = detail.sourceUrl;
