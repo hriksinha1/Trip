@@ -47,8 +47,8 @@ async function checkImages() {
   for (const item of REQUIRED_KEYS) {
     const fullPath = path.resolve(item.file);
     const entry = getRegistryEntry(item.key);
-    const altMatch = entry.match(/\\balt:\\s*"((?:\\\\.|[^"])*)"/);
-    const labelMatch = entry.match(/\\blabel:\\s*"((?:\\\\.|[^"])*)"/);
+    const altMatch = entry.match(/\balt:\s*"([^"]*)"/);
+    const labelMatch = entry.match(/\blabel:\s*"([^"]*)"/);
     const alt = altMatch?.[1]?.trim() ?? "";
     const label = labelMatch?.[1]?.trim() ?? "";
     const source = provenance[item.key];
