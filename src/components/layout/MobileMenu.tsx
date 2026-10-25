@@ -99,7 +99,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, activeS
             <a
               key={link.id}
               href={link.href}
-              aria-current={active ? "page" : undefined}
+              aria-current={active ? "location" : undefined}
               onClick={() => onCloseRef.current()}
               className={`flex min-h-12 items-center rounded-xl px-4 py-3 text-xl font-medium transition-colors duration-200 ${active ? "bg-white text-[#151515] font-semibold" : "text-neutral-300 hover:text-white hover:bg-white/5"}`}
             >
