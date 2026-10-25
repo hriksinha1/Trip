@@ -59,7 +59,8 @@ export const PopularTrips: React.FC<PopularTripsProps> = ({ onEnquireNow }) => {
     const track = trackRef.current;
     const card = track?.children[index] as HTMLElement | undefined;
     if (!track || !card) return;
-    track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: "smooth" });
+    const targetLeft = track.scrollLeft + card.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    track.scrollTo({ left: targetLeft, behavior: "smooth" });
   };
 
   return (
