@@ -40,7 +40,7 @@ export const BrandStatement: React.FC = () => {
         <div className="grid h-[clamp(300px,32vw,460px)] min-w-0 grid-cols-2 grid-rows-[repeat(2,minmax(0,1fr))] gap-3">
           {collage.map((photo) => (
             <figure key={photo.id} className={`relative min-w-0 overflow-hidden rounded-[var(--radius-card)] bg-[#E8E6E0] shadow-soft ${photo.className}`}>
-              <SmartImage imageId={photo.id} alt={photo.label + " travel landscape in India"} fill className="object-cover" />
+              <SmartImage imageId={photo.id} fill className="object-cover" />
               <figcaption className="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
                 {photo.label}
               </figcaption>
