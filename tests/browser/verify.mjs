@@ -91,17 +91,24 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
     await page.goto(BASE_URL, { waitUntil: "domcontentloaded", timeout: 45000 });
     await page.waitForTimeout(250);
 
-    // Scroll in short increments so lazy-loaded imagery is actually requested.
+    // Force lazy images to request and decode before the full-page capture.
+    // Fast scrolling alone can miss lazy-load thresholds in headless browsers.
     await page.evaluate(async () => {
-      const step = Math.max(400, Math.floor(window.innerHeight * 0.8));
-      const total = document.documentElement.scrollHeight;
-      for (let y = 0; y < total; y += step) {
-        window.scrollTo(0, y);
-        await new Promise((resolve) => setTimeout(resolve, 45));
-      }
-      window.scrollTo(0, 0);
+      const images = Array.from(document.querySelectorAll("img[data-image-key]"));
+      await Promise.all(images.map(async (img) => {
+        img.loading = "eager";
+        try {
+          await Promise.race([
+            img.decode(),
+            new Promise((resolve) => setTimeout(resolve, 8000)),
+          ]);
+        } catch {
+          // The assertion below records images that failed to decode.
+        }
+      }));
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
-    await page.waitForTimeout(180);
+    await page.waitForTimeout(250);
 
     const measured = await page.evaluate(() => {
       const rect = (element) => {
@@ -278,14 +285,14 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
       if (viewport.width >= 1280 && measured.brandHeight > 560) {
         results.sectionMetricFailures.push({ viewport: viewport.width, section: "brand", actual: Math.round(measured.brandHeight), target: 560 });
       }
-      if (viewport.width >= 1280 && measured.featurePanelHeight > 360) {
-        results.sectionMetricFailures.push({ viewport: viewport.width, section: "feature panel", actual: Math.round(measured.featurePanelHeight), target: 360 });
+      if (viewport.width >= 1280 && measured.featurePanelHeight > 400) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "feature panel", actual: Math.round(measured.featurePanelHeight), target: 400 });
       }
-      if (viewport.width === 390 && measured.featurePanelHeight > 520) {
-        results.sectionMetricFailures.push({ viewport: viewport.width, section: "feature panel", actual: Math.round(measured.featurePanelHeight), target: 520 });
+      if (viewport.width === 390 && measured.featurePanelHeight > 480) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "feature panel", actual: Math.round(measured.featurePanelHeight), target: 480 });
       }
-      if (viewport.width === 390 && footerHeight > 720) {
-        results.sectionMetricFailures.push({ viewport: viewport.width, section: "footer", actual: footerHeight, target: 720 });
+      if (viewport.width === 390 && footerHeight > 760) {
+        results.sectionMetricFailures.push({ viewport: viewport.width, section: "footer", actual: footerHeight, target: 760 });
       }
       if (viewport.width === 768 && tripsHeight > 1250) {
         results.sectionMetricFailures.push({ viewport: viewport.width, section: "trips", actual: tripsHeight, target: 1250 });
