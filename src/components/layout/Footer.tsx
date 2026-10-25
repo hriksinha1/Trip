@@ -78,7 +78,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
             <ul className="space-y-1.5 text-[14px] text-[#B3B3B3]">
               {exploreLinks.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href} className="inline-flex min-h-9 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
+                  <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
                 </li>
               ))}
             </ul>
@@ -90,11 +90,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
               {supportLinks.map((item) => (
                 <li key={item.href}>
                   {item.label === "Terms & Conditions" ? (
-                    <button type="button" onClick={() => onOpenLegalDialog("terms")} className="inline-flex min-h-9 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
+                    <button type="button" onClick={() => onOpenLegalDialog("terms")} className="inline-flex min-h-11 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
                   ) : item.label === "Privacy Policy" ? (
-                    <button type="button" onClick={() => onOpenLegalDialog("privacy")} className="inline-flex min-h-9 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
+                    <button type="button" onClick={() => onOpenLegalDialog("privacy")} className="inline-flex min-h-11 items-center rounded-sm text-left transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</button>
                   ) : (
-                    <a href={item.href} className="inline-flex min-h-9 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
+                    <a href={item.href} className="inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{item.label}</a>
                   )}
                 </li>
               ))}
@@ -123,7 +123,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
         <div className="flex flex-col items-center gap-4 pt-6 text-center text-[13px] text-[#A6A6A6] sm:flex-row sm:justify-between sm:text-left">
           <p>© {currentYear} Starttrips. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-            <button type="button" onClick={() => onOpenLegalDialog("terms")} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Terms</button>
+            <button type="button" onClick={() => onOpenLegalDialog("terms")} className="min-h-11 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Terms</button>
             <button type="button" onClick={() => onOpenLegalDialog("privacy")} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Privacy</button>
             <button type="button" onClick={() => setPhotoCreditsOpen(true)} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Photo credits</button>
           </div>
@@ -140,10 +140,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
               <p className="mt-1 text-sm text-neutral-600">
                 Licence: {detail.license && detail.licenseUrl ? <a href={detail.licenseUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#151515]">{detail.license}</a> : detail.license || "Not recorded"}
               </p>
-              {detail.sourceUrl && <a href={detail.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-9 items-center text-sm font-medium text-[#151515] underline underline-offset-2">View original source</a>}
+              {detail.originalTitle && <a href={`https://commons.wikimedia.org/wiki/${encodeURIComponent(detail.originalTitle).replace(/%3A/gi, ":")}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center text-sm font-medium text-[#151515] underline underline-offset-2">View source page</a>}
+              {detail.sourceUrl && <a href={detail.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 ml-3 inline-flex min-h-11 items-center text-sm font-medium text-[#151515] underline underline-offset-2">Original image file</a>}
             </article>
           ))}
-          <p className="text-xs text-neutral-500">Images have been cropped and resized for presentation. Please review the associated source and licence terms before reuse.</p>
+          <p className="text-xs text-neutral-500">Images have been cropped and resized. Please review the linked source and licence terms before reuse.</p>
         </div>
       </Dialog>
     </>
