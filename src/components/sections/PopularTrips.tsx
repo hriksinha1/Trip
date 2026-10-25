@@ -84,7 +84,7 @@ export const PopularTrips: React.FC<PopularTripsProps> = ({ onEnquireNow }) => {
               key={trip.id}
               className="snap-start shrink-0 w-[78vw] sm:w-auto min-w-0 flex h-full flex-col group"
             >
-              <div className="relative aspect-[4/5] sm:aspect-[4/3] xl:aspect-[5/6] rounded-[var(--radius-card)] overflow-hidden bg-neutral-100 shadow-xs">
+              <div className="relative aspect-[4/5] sm:aspect-[4/3] md:aspect-[3/2] xl:aspect-[5/6] rounded-[var(--radius-card)] overflow-hidden bg-neutral-100 shadow-xs">
                 {trip.isRecommended && (
                   <span className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-white/95 text-[11px] font-semibold text-neutral-800 shadow-xs select-none">
                     Featured
