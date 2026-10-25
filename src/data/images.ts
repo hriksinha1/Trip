@@ -81,8 +81,8 @@ const baseImages: Record<string, Omit<ImageItem, "status" | "src" | "srcSet" | "
   },
   dest_goa: {
     id: "dest_goa",
-    label: "Goa",
-    alt: "Golden sunset over calm surf and coconut palms in South Goa",
+    label: "Goa sunset coast",
+    alt: "Sunset over calm sea with the sun reflected across the water",
     objectPosition: "center center",
     fallback: "linear-gradient(180deg, #1e3a5f 0%, #c2410c 60%, #fdba74 100%)",
     accent: "#1e3a5f",
