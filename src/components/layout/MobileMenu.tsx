@@ -35,7 +35,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, activeS
 
       const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
         'a[href]:not([tabindex="-1"]), button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      )).filter((element) => element.offsetParent !== null);
+      )).filter((element) => element.getClientRects().length > 0);
       if (focusable.length === 0) {
         event.preventDefault();
         dialogRef.current.focus();
@@ -57,7 +57,10 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, activeS
       window.clearTimeout(focusTimer);
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      window.setTimeout(() => previousFocusRef.current?.focus(), 0);
+      window.setTimeout(() => {
+        // Do not steal focus from the enquiry dialog when the menu CTA opens it.
+        if (!document.querySelector('[role="dialog"]')) previousFocusRef.current?.focus();
+      }, 0);
     };
   }, [isOpen]);
 
