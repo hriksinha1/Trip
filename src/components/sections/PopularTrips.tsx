@@ -77,7 +77,7 @@ export const PopularTrips: React.FC<PopularTripsProps> = ({ onEnquireNow }) => {
           ref={trackRef}
           tabIndex={0}
           aria-label="Popular trips list"
-          className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:auto-rows-fr gap-[var(--card-gap)] overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar pb-2 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] rounded-xl"
+          className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:auto-rows-fr gap-[var(--card-gap)] overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar pb-2 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] rounded-xl"
         >
           {featuredTrips.map((trip) => (
             <article
