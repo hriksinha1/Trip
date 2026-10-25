@@ -19,7 +19,7 @@ export const TravelerStories: React.FC = () => {
           className="section-heading-gap"
         />
 
-        <div className="hidden xl:grid grid-cols-5 items-start gap-[var(--card-gap)]">
+        <div className="hidden xl:grid grid-cols-4 items-start gap-[var(--card-gap)]">
           {editorialStories.map((story, index) => (
             <div
               key={story.id}
