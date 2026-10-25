@@ -7,7 +7,6 @@ export interface Trip {
   duration: string;
   priceFrom: number; // in INR per person (indicative)
   isRecommended: boolean;
-  isPrimaryButton: boolean;
   featured: boolean;
   destinationId: string;
   imageId: string;
@@ -23,7 +22,6 @@ export const trips: Trip[] = [
     duration: "3 Nights / 4 Days",
     priceFrom: 8499,
     isRecommended: true,
-    isPrimaryButton: true,
     featured: true,
     destinationId: "goa",
     imageId: "trip_goa",
@@ -37,7 +35,6 @@ export const trips: Trip[] = [
     duration: "2 Nights / 3 Days",
     priceFrom: 5999,
     isRecommended: false,
-    isPrimaryButton: false,
     featured: true,
     destinationId: "chikmagalur",
     imageId: "trip_chikmagalur",
@@ -51,7 +48,6 @@ export const trips: Trip[] = [
     duration: "2 Nights / 3 Days",
     priceFrom: 6499,
     isRecommended: false,
-    isPrimaryButton: false,
     featured: true,
     destinationId: "coorg",
     imageId: "trip_coorg",
@@ -65,7 +61,6 @@ export const trips: Trip[] = [
     duration: "2 Nights / 3 Days",
     priceFrom: 5499,
     isRecommended: true,
-    isPrimaryButton: false,
     featured: true,
     destinationId: "gokarna",
     imageId: "trip_gokarna",
@@ -79,7 +74,6 @@ export const trips: Trip[] = [
     duration: "2 Nights / 3 Days",
     priceFrom: 4999,
     isRecommended: false,
-    isPrimaryButton: false,
     featured: false,
     destinationId: "hyderabad",
     imageId: "trip_hyderabad",
