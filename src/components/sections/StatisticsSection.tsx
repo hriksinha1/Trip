@@ -36,7 +36,7 @@ export const StatisticsSection: React.FC = () => (
                   <h3 className={fact.value ? "mt-1.5 font-display text-[14px] font-semibold leading-tight text-white sm:text-[16px] lg:text-[17px]" : "font-display text-[16px] font-semibold leading-tight text-white sm:text-[18px]"} style={{ textWrap: "balance" }}>
                     {fact.title}
                   </h3>
-                  <p className={fact.value ? "mt-1.5 text-[11px] leading-relaxed text-white/95 sm:text-[12px] lg:text-[13px]" : "mt-1.5 text-[12px] leading-relaxed text-white/95 sm:text-[13px]"}>
+                  <p className={fact.value ? "mt-1.5 max-w-[34ch] text-[11px] leading-relaxed text-white/95 sm:text-[12px] lg:text-[13px]" : "mt-1.5 max-w-[34ch] text-[12px] leading-relaxed text-white/95 sm:text-[13px]"}>
                     {fact.caption}
                   </p>
                 </div>
@@ -47,3 +47,4 @@ export const StatisticsSection: React.FC = () => (
       </div>
     </div>
   </section>
+);

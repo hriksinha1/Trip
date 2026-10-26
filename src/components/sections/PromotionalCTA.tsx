@@ -30,3 +30,4 @@ export const PromotionalCTA: React.FC<PromotionalCTAProps> = ({ onPlanTripClick 
       </div>
     </div>
   </section>
+);

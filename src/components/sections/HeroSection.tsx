@@ -18,7 +18,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSearchSubmit }) => (
       <div data-shell className="shell relative z-10 flex h-full min-h-[560px] flex-col items-center justify-center px-0 pb-8 pt-24 text-center sm:pt-28">
         <div className="flex w-full max-w-4xl flex-col items-center px-2 sm:px-4">
           <h1 className="font-display text-[clamp(2.5rem,1.3rem+4.4vw,4.75rem)] font-medium leading-[1.02] tracking-tight text-white drop-shadow-sm" style={{ textWrap: "balance" }}>
-            Your next great getaway<br className="hidden sm:block" />starts here.
+            Your next great getaway<span className="sm:hidden"> </span><br className="hidden sm:block" />starts here.
           </h1>
           <p className="mt-4 max-w-[48ch] font-sans text-[15px] leading-relaxed text-white/95 drop-shadow-sm sm:mt-5 sm:text-base">
             From sun-soaked beaches to misty mountain escapes, find a trip that feels made for you.
@@ -30,3 +30,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSearchSubmit }) => (
       </div>
     </div>
   </section>
+);
