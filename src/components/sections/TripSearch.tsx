@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { MapPin, Calendar, Users, Minus, Plus } from "lucide-react";
+import { MapPin, CalendarDays, Users, Minus, Plus, ChevronDown } from "lucide-react";
 import { Button } from "../ui/Button";
 import { destinations } from "../../data/destinations";
+import { formatLocalDateLabel, getLocalDateString, getNextLocalDateString } from "../../lib/local-date.js";
 
 export interface TripSearchParams {
   destination: string;
@@ -19,41 +20,62 @@ export const TripSearch: React.FC<TripSearchProps> = ({ onSearchSubmit }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [travellers, setTravellers] = useState(2);
-
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [isGuestOpen, setIsGuestOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
 
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const guestPopoverRef = useRef<HTMLDivElement>(null);
+  const dateTriggerRef = useRef<HTMLButtonElement>(null);
+  const guestTriggerRef = useRef<HTMLButtonElement>(null);
+  const destinationRef = useRef<HTMLInputElement>(null);
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalDateString();
+  const endDateMin = startDate ? getNextLocalDateString(startDate) : todayStr;
+  const hasDestinationError = Boolean(validationError && !destination.trim());
 
-  // Close popovers on click outside
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (datePopoverRef.current && !datePopoverRef.current.contains(e.target as Node)) {
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (datePopoverRef.current && !datePopoverRef.current.contains(target)) setIsDateOpen(false);
+      if (guestPopoverRef.current && !guestPopoverRef.current.contains(target)) setIsGuestOpen(false);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (isDateOpen) {
+        event.preventDefault();
         setIsDateOpen(false);
-      }
-      if (guestPopoverRef.current && !guestPopoverRef.current.contains(e.target as Node)) {
+        dateTriggerRef.current?.focus();
+      } else if (isGuestOpen) {
+        event.preventDefault();
         setIsGuestOpen(false);
+        guestTriggerRef.current?.focus();
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDateOpen, isGuestOpen]);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     setValidationError("");
 
     if (!destination.trim()) {
       setValidationError("Please select or enter a destination.");
+      destinationRef.current?.focus();
       return;
     }
 
-    if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
+    if (startDate && endDate && endDate <= startDate) {
       setValidationError("Return date must be after departure date.");
+      setIsDateOpen(true);
+      dateTriggerRef.current?.focus();
       return;
     }
 
@@ -63,190 +85,162 @@ export const TripSearch: React.FC<TripSearchProps> = ({ onSearchSubmit }) => {
       endDate: endDate || undefined,
       travellers,
     });
-
     setIsDateOpen(false);
     setIsGuestOpen(false);
   };
 
-  const formattedDateLabel =
-    startDate && endDate
-      ? `${startDate.slice(5)} to ${endDate.slice(5)}`
-      : startDate
-      ? `From ${startDate.slice(5)}`
-      : "Travel dates";
+  const formattedDateLabel = startDate && endDate
+    ? formatLocalDateLabel(startDate) + " – " + formatLocalDateLabel(endDate)
+    : startDate
+      ? "From " + formatLocalDateLabel(startDate)
+      : "Choose dates";
 
   return (
-    <div className="w-full max-w-[760px] mx-auto px-1 sm:px-2">
+    <div className="relative z-20 mx-auto w-full max-w-[920px] px-0.5 sm:px-2">
       <form
         onSubmit={handleSubmit}
-        className="relative bg-[rgba(20,20,20,0.65)] backdrop-blur-md border border-white/20 rounded-2xl md:rounded-full p-2.5 md:p-1.5 shadow-2xl flex flex-col md:flex-row md:items-center text-white gap-2 md:gap-0"
+        noValidate
+        aria-label="Plan a trip"
+        className="grid grid-cols-1 gap-2 rounded-[26px] border border-white/25 bg-[rgba(13,18,17,0.82)] p-2 shadow-[0_22px_60px_-24px_rgba(0,0,0,.85),0_2px_8px_rgba(0,0,0,.2)] backdrop-blur-xl md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,.85fr)_auto] md:items-stretch md:gap-1.5 md:rounded-[28px] md:p-2"
       >
-        {/* Segment 1: Destination input with datalist */}
-        <div className="flex-1 flex items-center gap-2.5 px-3 py-2.5 md:py-1 min-h-[44px]">
-          <MapPin className="w-4 h-4 text-white/80 shrink-0" aria-hidden="true" />
-          <label htmlFor="search-destination" className="sr-only">
-            Where would you like to travel?
-          </label>
-          <input
-            id="search-destination"
-            list="destinations-list"
-            type="text"
-            value={destination}
-            onChange={(e) => {
-              setDestination(e.target.value);
-              if (validationError) setValidationError("");
-            }}
-            placeholder="Where would you like to go?"
-            className="w-full bg-transparent text-sm text-white placeholder-white/80 focus:outline-none font-sans"
-          />
-          <datalist id="destinations-list">
-            {destinations.map((d) => (
-              <option key={d.id} value={`${d.name}, ${d.state}`} />
-            ))}
-          </datalist>
+        <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] px-3.5 py-3 transition-colors hover:bg-white/[0.09] focus-within:border-white/45 focus-within:bg-white/[0.09] md:px-4 md:py-2.5">
+          <MapPin className="size-[18px] shrink-0 text-white/85" aria-hidden="true" />
+          <div className="min-w-0 flex-1 text-left">
+            <label htmlFor="search-destination" className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">Destination</label>
+            <input
+              ref={destinationRef}
+              id="search-destination"
+              list="destinations-list"
+              type="text"
+              value={destination}
+              onChange={(event) => {
+                setDestination(event.target.value);
+                if (validationError) setValidationError("");
+              }}
+              placeholder="Where would you like to go?"
+              aria-invalid={hasDestinationError}
+              aria-describedby={hasDestinationError ? "trip-search-error" : undefined}
+              autoComplete="off"
+              className="w-full min-w-0 bg-transparent p-0 font-sans text-sm font-medium text-white outline-none placeholder:text-white/75 focus:outline-none"
+            />
+            <datalist id="destinations-list">
+              {destinations.map((destinationOption) => (
+                <option key={destinationOption.id} value={destinationOption.name + ", " + destinationOption.state} />
+              ))}
+            </datalist>
+          </div>
         </div>
 
-        <div className="hidden md:block w-px h-6 bg-white/20 shrink-0" aria-hidden="true" />
-
-        {/* Segment 2: Travel dates popover */}
-        <div className="relative flex-1" ref={datePopoverRef}>
+        <div className="relative min-w-0" ref={datePopoverRef}>
           <button
+            ref={dateTriggerRef}
             type="button"
             onClick={() => {
-              setIsDateOpen(!isDateOpen);
+              setIsDateOpen((open) => !open);
               setIsGuestOpen(false);
             }}
             aria-expanded={isDateOpen}
-            aria-label="Select travel dates"
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 md:py-2 min-h-[44px] text-left text-sm hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+            aria-controls="trip-date-popover"
+            aria-label={"Select travel dates. " + formattedDateLabel}
+            className={"flex min-h-[66px] w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition-[background-color,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white md:px-4 md:py-2.5 " + (isDateOpen ? "border-white/45 bg-white/[0.12]" : "border-white/10 bg-white/[0.055] hover:border-white/25 hover:bg-white/[0.09]")}
           >
-            <Calendar className="w-4 h-4 text-white/80 shrink-0" aria-hidden="true" />
-            <span className="truncate text-white/90">{formattedDateLabel}</span>
+            <CalendarDays className="size-[18px] shrink-0 text-white/85" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">Travel dates</span>
+              <span className="block truncate text-sm font-medium text-white">{formattedDateLabel}</span>
+            </span>
+            <ChevronDown className={"size-4 shrink-0 text-white/70 transition-transform duration-200 " + (isDateOpen ? "rotate-180" : "")} aria-hidden="true" />
           </button>
 
           {isDateOpen && (
-            <div className="md:absolute top-full left-0 mt-2 z-50 w-full sm:w-72 bg-white text-[#151515] rounded-xl p-4 shadow-xl border border-neutral-200 modal-content-animate">
+            <div id="trip-date-popover" role="group" aria-label="Choose travel dates" className="absolute left-0 top-full z-[70] mt-2 w-full min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 text-[#151515] shadow-[0_18px_48px_-18px_rgba(0,0,0,.42)] sm:w-[min(320px,calc(100vw-32px))]">
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="search-start-date" className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Departure Date
-                  </label>
+                  <label htmlFor="search-start-date" className="mb-1.5 block text-xs font-semibold text-neutral-700">Departure date</label>
                   <input
                     id="search-start-date"
                     type="date"
                     min={todayStr}
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full text-sm border border-neutral-300 rounded-lg p-2 focus:ring-2 focus:ring-[#151515] focus:outline-none"
+                    onChange={(event) => {
+                      const nextStart = event.target.value;
+                      setStartDate(nextStart);
+                      if (endDate && nextStart && endDate <= nextStart) setEndDate("");
+                    }}
+                    className="min-h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm focus:border-[#151515] focus:outline-none focus:ring-2 focus:ring-[#151515]/15"
                   />
                 </div>
                 <div>
-                  <label htmlFor="search-end-date" className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Return Date (Optional)
-                  </label>
+                  <label htmlFor="search-end-date" className="mb-1.5 block text-xs font-semibold text-neutral-700">Return date <span className="font-normal text-neutral-500">(optional)</span></label>
                   <input
                     id="search-end-date"
                     type="date"
-                    min={startDate || todayStr}
+                    min={endDateMin}
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full text-sm border border-neutral-300 rounded-lg p-2 focus:ring-2 focus:ring-[#151515] focus:outline-none"
+                    onChange={(event) => setEndDate(event.target.value)}
+                    className="min-h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm focus:border-[#151515] focus:outline-none focus:ring-2 focus:ring-[#151515]/15"
                   />
                 </div>
                 <div className="flex justify-end pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsDateOpen(false)}
-                    className="text-xs font-semibold text-[#151515] hover:underline"
-                  >
-                    Done
-                  </button>
+                  <button type="button" onClick={() => { setIsDateOpen(false); dateTriggerRef.current?.focus(); }} className="inline-flex min-h-11 items-center rounded-full bg-[#151515] px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] focus-visible:ring-offset-2">Done</button>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="hidden md:block w-px h-6 bg-white/20 shrink-0" aria-hidden="true" />
-
-        {/* Segment 3: Travellers count stepper (Rooms removed per spec) */}
-        <div className="relative flex-1" ref={guestPopoverRef}>
+        <div className="relative min-w-0" ref={guestPopoverRef}>
           <button
+            ref={guestTriggerRef}
             type="button"
             onClick={() => {
-              setIsGuestOpen(!isGuestOpen);
+              setIsGuestOpen((open) => !open);
               setIsDateOpen(false);
             }}
             aria-expanded={isGuestOpen}
-            aria-label="Select traveller count"
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 md:py-2 min-h-[44px] text-left text-sm hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+            aria-controls="trip-traveller-popover"
+            aria-label={"Select travellers. " + travellers + " " + (travellers === 1 ? "traveller" : "travellers")}
+            className={"flex min-h-[66px] w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition-[background-color,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white md:px-4 md:py-2.5 " + (isGuestOpen ? "border-white/45 bg-white/[0.12]" : "border-white/10 bg-white/[0.055] hover:border-white/25 hover:bg-white/[0.09]")}
           >
-            <Users className="w-4 h-4 text-white/80 shrink-0" aria-hidden="true" />
-            <span className="truncate text-white/90">
-              {travellers} {travellers === 1 ? "Traveller" : "Travellers"}
+            <Users className="size-[18px] shrink-0 text-white/85" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">Travellers</span>
+              <span className="block truncate text-sm font-medium text-white">{travellers} {travellers === 1 ? "traveller" : "travellers"}</span>
             </span>
+            <ChevronDown className={"size-4 shrink-0 text-white/70 transition-transform duration-200 " + (isGuestOpen ? "rotate-180" : "")} aria-hidden="true" />
           </button>
 
           {isGuestOpen && (
-            <div className="md:absolute top-full left-0 sm:left-auto sm:right-0 mt-2 z-50 w-full sm:w-64 bg-white text-[#151515] rounded-xl p-4 shadow-xl border border-neutral-200 modal-content-animate">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-bold text-neutral-800">Travellers</div>
-                    <div className="text-[11px] text-neutral-500">Group or solo travellers</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={travellers <= 1}
-                      onClick={() => setTravellers(Math.max(1, travellers - 1))}
-                      aria-label="Decrease travellers"
-                      className="w-7 h-7 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="text-xs font-semibold w-4 text-center tabular-nums">{travellers}</span>
-                    <button
-                      type="button"
-                      disabled={travellers >= 10}
-                      onClick={() => setTravellers(Math.min(10, travellers + 1))}
-                      aria-label="Increase travellers"
-                      className="w-7 h-7 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  </div>
+            <div id="trip-traveller-popover" role="group" aria-label="Choose number of travellers" className="absolute right-0 top-full z-[70] mt-2 w-full min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 text-[#151515] shadow-[0_18px_48px_-18px_rgba(0,0,0,.42)] sm:w-[min(304px,calc(100vw-32px))]">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm font-semibold text-neutral-900">Travellers</div>
+                  <div className="mt-1 text-xs text-neutral-500">Solo or group travel</div>
                 </div>
-
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsGuestOpen(false)}
-                    className="text-xs font-semibold text-[#151515] hover:underline"
-                  >
-                    Done
+                <div className="flex items-center gap-2">
+                  <button type="button" disabled={travellers <= 1} onClick={() => setTravellers((value) => Math.max(1, value - 1))} aria-label="Decrease travellers" className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-300 text-neutral-700 transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
+                    <Minus className="size-4" aria-hidden="true" />
+                  </button>
+                  <output aria-live="polite" className="w-6 text-center text-sm font-semibold tabular-nums">{travellers}</output>
+                  <button type="button" disabled={travellers >= 10} onClick={() => setTravellers((value) => Math.min(10, value + 1))} aria-label="Increase travellers" className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-300 text-neutral-700 transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515]">
+                    <Plus className="size-4" aria-hidden="true" />
                   </button>
                 </div>
+              </div>
+              <div className="mt-3 flex justify-end border-t border-neutral-100 pt-3">
+                <button type="button" onClick={() => { setIsGuestOpen(false); guestTriggerRef.current?.focus(); }} className="inline-flex min-h-11 items-center rounded-full bg-[#151515] px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#151515] focus-visible:ring-offset-2">Done</button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Segment 4: Plan my trip submit button */}
-        <div className="pt-1 md:pt-0 shrink-0">
-          <Button
-            type="submit"
-            variant="onPhoto"
-            size="md"
-            className="w-full md:w-auto font-semibold text-sm px-6 py-3 rounded-full shadow-md min-h-[44px]"
-          >
-            Plan my trip
-          </Button>
-        </div>
+        <Button type="submit" variant="onPhoto" size="md" className="min-h-[58px] w-full self-stretch px-6 font-semibold shadow-[0_4px_14px_rgba(0,0,0,.22)] transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 md:min-h-[66px] md:w-auto md:px-5 lg:px-6">
+          Plan my trip
+        </Button>
       </form>
 
       {validationError && (
-        <p role="alert" className="text-center text-xs text-amber-200 mt-2 bg-black/50 py-1 px-3 rounded-full mx-auto w-fit">
+        <p id="trip-search-error" role="alert" className="mx-auto mt-3 w-fit max-w-full rounded-xl border border-white/20 bg-black/80 px-4 py-2 text-left text-sm font-medium text-white shadow-lg">
           {validationError}
         </p>
       )}

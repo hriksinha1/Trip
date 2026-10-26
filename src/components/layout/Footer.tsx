@@ -59,7 +59,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
 
   return (
     <>
-      <footer id="contact" aria-label="Starttrips footer" data-shell className="shell rounded-b-[var(--radius-block)] bg-[#0E0E0E] px-5 py-6 text-white sm:px-8 sm:py-10 lg:px-10">
+      <footer id="contact" aria-label="Starttrips footer" data-full-bleed="footer" className="page-surface w-full bg-[#0E0E0E] py-6 text-white sm:py-8 lg:py-10">
+        <div data-shell className="shell">
         <div className="grid grid-cols-2 gap-x-6 gap-y-6 border-b border-white/10 pb-6 sm:gap-x-8 sm:gap-y-9 lg:grid-cols-[1.4fr_1fr_1fr_1.6fr] lg:gap-10 lg:pb-10">
           <div className="col-span-2 flex flex-col items-start gap-3 lg:col-span-1">
             <a href="#home" aria-label="Starttrips home"><Logo theme="light" /></a>
@@ -122,6 +123,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalDialog, onPlanTripCli
             <button type="button" onClick={() => onOpenLegalDialog("privacy")} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Privacy</button>
             <button type="button" onClick={() => setPhotoCreditsOpen(true)} className="min-h-9 rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Photo credits</button>
           </div>
+        </div>
         </div>
       </footer>
 

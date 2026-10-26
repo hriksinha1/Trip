@@ -28,7 +28,7 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ onPlanTripClick }) => {
             const buttonId = `faq-btn-${item.id}`;
             const panelId = `faq-panel-${item.id}`;
             return (
-              <article key={item.id} className="overflow-hidden rounded-[14px] border border-[#E8E6E0] bg-white shadow-soft transition-colors">
+              <article key={item.id} className="interactive-lift overflow-hidden rounded-[14px] border border-[#E8E6E0] bg-white shadow-soft transition-colors">
                 <h3>
                   <button
                     id={buttonId}

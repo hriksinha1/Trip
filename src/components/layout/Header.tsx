@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
   const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 80);
+    const handleScroll = () => setIsScrolled(window.scrollY > 48);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -28,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
         if (entry.isIntersecting) setActiveSection(entry.target.id);
       });
     }, { root: null, rootMargin: "-20% 0px -60% 0px", threshold: 0 });
+
     sectionIds.forEach((id) => {
       const element = document.getElementById(id);
       if (element) observer.observe(element);
@@ -37,18 +38,22 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
 
   return (
     <>
-      <header className={`fixed inset-x-0 z-40 transition-[top] duration-200 ease-out ${isScrolled ? "top-2" : "top-0"}`}>
+      <header className="fixed inset-x-0 top-0 z-40 w-full">
         <div
           data-header-scrolled={isScrolled ? "true" : "false"}
-          data-shell
-          className={`shell transition-[background-color,box-shadow,border-color,border-radius] duration-200 ${isScrolled ? "rounded-[20px] border border-white/10 bg-[#0E0E0E]/95 shadow-lg" : "rounded-b-2xl border border-transparent bg-transparent"}`}
+          data-header-bar
+          className={"w-full border-b transition-[background-color,box-shadow,border-color,backdrop-filter] duration-200 ease-out " + (
+            isScrolled
+              ? "border-white/10 bg-[#0E0E0E]/95 shadow-[var(--shadow-header)] backdrop-blur-lg"
+              : "border-white/10 bg-[#0E0E0E]/30 backdrop-blur-sm"
+          )}
         >
-          <div className="grid grid-cols-[1fr_auto] lg:grid-cols-[1fr_auto_1fr] items-center gap-3 px-[var(--header-inset)] py-3">
-            <a href="#home" className="flex items-center gap-2 justify-self-start rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Starttrips home">
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-[var(--page-inset)] py-2.5 sm:py-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+            <a href="#home" className="flex min-h-11 min-w-0 items-center justify-self-start gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Starttrips home">
               <Logo theme="light" />
             </a>
 
-            <nav aria-label="Main navigation" className="hidden lg:flex justify-self-center items-center gap-1 rounded-full border border-white/15 bg-black/40 p-1.5 shadow-sm backdrop-blur-sm">
+            <nav aria-label="Main navigation" className="hidden items-center justify-self-center gap-0.5 rounded-full border border-white/15 bg-black/45 p-1 shadow-[var(--shadow-xs)] backdrop-blur-md lg:flex">
               {navLinks.map((link) => {
                 const isActive = activeSection === link.id;
                 return (
@@ -56,7 +61,11 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
                     key={link.id}
                     href={link.href}
                     aria-current={isActive ? "location" : undefined}
-                    className={`inline-flex min-h-9 items-center whitespace-nowrap rounded-full px-3.5 text-[13px] xl:text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${isActive ? "bg-white text-[#151515] font-semibold" : "text-white/85 hover:bg-white/10 hover:text-white"}`}
+                    className={"relative inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-2.5 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white xl:px-3 " + (
+                      isActive
+                        ? "bg-white text-[#151515] font-semibold shadow-sm"
+                        : "text-white/90 hover:bg-white/10 hover:text-white active:bg-white/20"
+                    )}
                   >
                     {link.label}
                   </a>
@@ -65,12 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
             </nav>
 
             <div className="flex items-center justify-self-end gap-2.5">
-              <Button
-                variant="onPhoto"
-                size="sm"
-                onClick={onPlanTripClick}
-                className="header-plan-cta min-h-10 px-4 font-semibold"
-              >
+              <Button variant="onPhoto" size="md" onClick={onPlanTripClick} className="header-plan-cta min-h-11 px-4 font-semibold shadow-[var(--shadow-xs)] transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0">
                 Plan my trip
               </Button>
               <button
@@ -79,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="mobile-navigation"
                 aria-label="Open navigation menu"
-                className="lg:hidden inline-flex size-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex size-11 items-center justify-center rounded-full border border-white/25 bg-black/40 text-white shadow-[var(--shadow-xs)] transition-colors hover:bg-white/15 active:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white lg:hidden"
               >
                 <Menu className="size-5" aria-hidden="true" />
               </button>
@@ -88,12 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ onPlanTripClick }) => {
         </div>
       </header>
 
-      <MobileMenu
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        activeSection={activeSection}
-        onPlanTripClick={onPlanTripClick}
-      />
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} activeSection={activeSection} onPlanTripClick={onPlanTripClick} />
     </>
   );
 };

@@ -67,7 +67,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#151515] font-sans selection:bg-[#151515] selection:text-white pb-16 md:pb-0">
+    <div className="min-h-screen w-full bg-[#FAF9F6] text-[#151515] font-sans selection:bg-[#151515] selection:text-white">
       {/* Skip Link for Keyboard Accessibility */}
       <a
         href="#main-content"
@@ -106,13 +106,11 @@ export function App() {
         <PromotionalCTA onPlanTripClick={() => handleOpenEnquiry()} />
       </main>
 
-      {/* 9. Footer - directly follows promo with zero gap, shares shell width */}
-      <div className="w-full pb-8 sm:pb-12">
-        <Footer
-          onOpenLegalDialog={(type) => setLegalModalType(type)}
-          onPlanTripClick={() => handleOpenEnquiry()}
-        />
-      </div>
+      {/* 9. Full-bleed footer surface; content uses the shared inner shell. */}
+      <Footer
+        onOpenLegalDialog={(type) => setLegalModalType(type)}
+        onPlanTripClick={() => handleOpenEnquiry()}
+      />
 
       {/* Sticky Mobile CTA Bar */}
       <StickyMobileCTA

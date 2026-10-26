@@ -11,7 +11,8 @@
     --footer: #0E0E0E;
     --footer-muted: #9A9A9A;
     --brand: #151515;
-    --gutter: clamp(16px, calc(8px + 2.2vw), 48px);
+    --page-inset: clamp(16px, calc(8px + 2.2vw), 48px);
+    --gutter: var(--page-inset);
     --shell-max: 1760px;
     --text-max: 840px;
     --measure: 62ch;
@@ -23,10 +24,17 @@
     --radius-block-lg: 28px;
     --radius-card: 16px;
     --radius-pill: 999px;
-    --shadow-card: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
-    --shadow-block: 0 10px 30px -10px rgba(0,0,0,.25);
-    --header-h: 76px;
-    --header-inset: clamp(16px, 1.6vw, 24px);
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04);
+    --shadow-card: 0 2px 8px rgba(0,0,0,.045), 0 10px 28px -14px rgba(0,0,0,.16);
+    --shadow-card-hover: 0 8px 18px rgba(0,0,0,.08), 0 20px 40px -22px rgba(0,0,0,.22);
+    --shadow-block: 0 16px 42px -22px rgba(0,0,0,.28);
+    --shadow-header: 0 8px 28px rgba(0,0,0,.16);
+    --ring-focus: #FFFFFF;
+    --ease-standard: cubic-bezier(.2,.75,.25,1);
+    --dur-fast: 160ms;
+    --dur-base: 220ms;
+    --header-h: 68px;
+    --header-inset: var(--page-inset);
     --font-display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
@@ -68,13 +76,32 @@
 }
 
 .shell {
-  width: min(calc(100% - 2 * var(--gutter)), var(--shell-max));
+  width: min(calc(100% - 2 * var(--page-inset)), var(--shell-max));
   margin-inline: auto;
 }
 
+/* Full-width surfaces own their backgrounds; .shell is reserved for aligned content. */
+[data-full-bleed] { width: 100%; }
+.page-surface { position: relative; width: 100%; }
+
+.interactive-lift {
+  transition:
+    box-shadow var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard),
+    background-color var(--dur-base) var(--ease-standard);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .interactive-lift:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
+  }
+}
+
 .bleed-pad {
-  padding-inline: max(var(--gutter), calc((100% - var(--shell-max)) / 2));
-  scroll-padding-inline: max(var(--gutter), calc((100% - var(--shell-max)) / 2));
+  padding-inline: max(var(--page-inset), calc((100% - var(--shell-max)) / 2));
+  scroll-padding-inline: max(var(--page-inset), calc((100% - var(--shell-max)) / 2));
 }
 
 .section { padding-top: var(--section-gap); }

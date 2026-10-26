@@ -96,7 +96,7 @@ export const DestinationExplorer: React.FC<DestinationExplorerProps> = ({ onSele
           {filteredDestinations.length === 0 ? (
             <div className="w-full py-12 text-center text-sm text-neutral-500">No destinations found for this category.</div>
           ) : filteredDestinations.map((destination) => (
-            <article key={destination.id} className="group relative aspect-[6/7] w-[78vw] shrink-0 snap-start overflow-hidden rounded-[20px] bg-neutral-200 sm:w-[clamp(260px,22vw,400px)]">
+            <article key={destination.id} className="interactive-lift group relative aspect-[6/7] w-[78vw] shrink-0 snap-start overflow-hidden rounded-[20px] bg-neutral-200 shadow-[var(--shadow-card)] sm:w-[clamp(260px,22vw,400px)]">
               <SmartImage imageId={destination.imageId} fill sizes="(min-width: 1280px) 22vw, (min-width: 640px) 34vw, 78vw" className="transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" aria-hidden="true" />
               <div className="absolute left-4 top-4 z-10">

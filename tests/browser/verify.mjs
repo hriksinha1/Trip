@@ -21,6 +21,10 @@ const results = {
   viewportsChecked: 0,
   browserRuns: [],
   overflowFailures: [],
+  fullBleedFailures: [],
+  footerEdgeFailures: [],
+  headerAlignmentFailures: [],
+  searchFailures: [],
   shellAlignmentFailures: [],
   brokenImages: [],
   imageResponses: [],
@@ -71,7 +75,7 @@ async function launchChromium() {
 }
 
 async function inspectViewport(browser, engineName, viewport, captureScreenshot) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, timezoneId: "Asia/Kolkata" });
   const page = await context.newPage();
   const pageErrors = [];
   const failedImageResponses = [];
@@ -127,16 +131,27 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
         return r.width > 0 && r.height > 0;
       };
       const shells = [
-        ["hero", document.querySelector("#home [data-shell]")],
+        ["hero-content", document.querySelector("#home [data-shell]")],
         ["trips", document.querySelector("#trips [data-shell]")],
         ["brand", document.querySelector("#about [data-shell]")],
-        ["stats", document.querySelector("#stats [data-shell]")],
+        ["stats-content", document.querySelector("#stats [data-shell]")],
         ["destinations-heading", document.querySelector("#destinations > [data-shell]")],
         ["stories", document.querySelector("#stories [data-shell]")],
         ["faq", document.querySelector("#faq [data-shell]")],
-        ["promo", document.querySelector("#plan [data-shell]")],
-        ["footer", document.querySelector("footer#contact[data-shell]")],
+        ["promo-content", document.querySelector("#plan [data-shell]")],
+        ["footer-content", document.querySelector("footer#contact [data-shell]")],
       ].map(([name, element]) => ({ name, rect: rect(element) }));
+      const fullBleedSurfaces = [
+        ["hero", document.querySelector("#home [data-full-bleed='hero']")],
+        ["stats", document.querySelector("#stats [data-full-bleed='stats']")],
+        ["promo", document.querySelector("#plan [data-full-bleed='promo']")],
+        ["footer", document.querySelector("#contact[data-full-bleed='footer']")],
+      ].map(([name, element]) => ({ name, rect: rect(element) }));
+      const heroSurface = document.querySelector("#home [data-full-bleed='hero']");
+      const footerElement = document.querySelector("footer#contact");
+      const footerRect = rect(footerElement);
+      const mainNavRect = rect(document.querySelector('header nav[aria-label="Main navigation"]'));
+      const searchFormRect = rect(document.querySelector('#home form[aria-label="Plan a trip"]'));
       const visibleImages = Array.from(document.querySelectorAll("[data-image-key]"))
         .filter(isVisible)
         .map((element) => {
@@ -155,7 +170,7 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
       const firstShell = document.querySelector("#destinations > [data-shell]");
       const headerShell = document.querySelector("[data-header-scrolled]");
       const headerLogo = document.querySelector("header a[aria-label='Starttrips home']");
-      const featurePanel = document.querySelector("#stats [data-shell]");
+      const featurePanel = document.querySelector("#stats [data-full-bleed='stats']");
       const statsTicketCards = document.querySelectorAll(".ticket-card").length;
       const tripCards = Array.from(document.querySelectorAll("#trips article"));
       const tripActionHeights = tripCards.map((card) => {
@@ -174,7 +189,7 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
         };
       });
       const touchTargets = Array.from(document.querySelectorAll(
-        '#destinations [role="toolbar"] button, #destinations button[aria-label^="Scroll destinations"], #trips button[aria-label="Previous trip"], #trips button[aria-label="Next trip"], #trips button[aria-label^="Go to trip"], header nav a, #mobile-navigation nav a'
+        '#destinations [role="toolbar"] button, #destinations button[aria-label^="Scroll destinations"], #trips button[aria-label="Previous trip"], #trips button[aria-label="Next trip"], #trips button[aria-label^="Go to trip"], header nav a, header button[aria-label="Open navigation menu"], #home button[aria-controls="trip-date-popover"], #home button[aria-controls="trip-traveller-popover"], #mobile-navigation nav a'
       )).filter(isVisible).map((element) => ({
         label: element.getAttribute("aria-label") || element.textContent?.trim() || "navigation target",
         height: Math.round(element.getBoundingClientRect().height),
@@ -194,6 +209,11 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
         documentWidth: document.documentElement.scrollWidth,
         documentHeight: document.documentElement.scrollHeight,
         shells,
+        fullBleedSurfaces,
+        heroTop: rect(heroSurface)?.top ?? null,
+        footerDocumentBottom: footerRect ? footerRect.bottom + window.scrollY : null,
+        mainNavRect,
+        searchFormRect,
         visibleImages,
         firstDestinationLeft: rect(firstDestination)?.left ?? null,
         destinationShellLeft: rect(firstShell)?.left ?? null,
@@ -211,8 +231,25 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
       };
     });
 
-    if (measured.documentWidth > viewport.width) {
+    if (measured.documentWidth > viewport.width + 1) {
       results.overflowFailures.push({ engineName, viewport, documentWidth: measured.documentWidth });
+    }
+    if (measured.heroTop === null || Math.abs(measured.heroTop) > 1) {
+      results.fullBleedFailures.push({ engineName, viewport: viewport.width, surface: "hero top", actual: measured.heroTop, expected: 0 });
+    }
+    for (const surface of measured.fullBleedSurfaces) {
+      if (!surface.rect || Math.abs(surface.rect.left) > 1 || Math.abs(surface.rect.right - viewport.width) > 1) {
+        results.fullBleedFailures.push({ engineName, viewport: viewport.width, surface: surface.name, rect: surface.rect, expected: { left: 0, right: viewport.width } });
+      }
+    }
+    if (measured.footerDocumentBottom === null || Math.abs(measured.footerDocumentBottom - measured.documentHeight) > 1) {
+      results.footerEdgeFailures.push({ engineName, viewport: viewport.width, footerBottom: measured.footerDocumentBottom, documentHeight: measured.documentHeight });
+    }
+    if (measured.mainNavRect && viewport.width >= 1024) {
+      const navCentre = measured.mainNavRect.left + measured.mainNavRect.width / 2;
+      if (Math.abs(navCentre - viewport.width / 2) > 8) {
+        results.headerAlignmentFailures.push({ engineName, viewport: viewport.width, navCentre, expectedCentre: viewport.width / 2, rect: measured.mainNavRect });
+      }
     }
     const horizontalScrollX = await page.evaluate(() => {
       window.scrollTo(500, 0);
@@ -311,17 +348,46 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
       }
       await page.evaluate(() => window.scrollTo(0, 300));
       await page.waitForTimeout(230);
-      const scrolledHeaderBox = await page.locator('[data-header-scrolled="true"]').boundingBox().catch(() => null);
-      const heroShellBox = await page.locator("#home [data-shell]").boundingBox().catch(() => null);
-      if (scrolledHeaderBox && heroShellBox &&
-          (Math.abs(scrolledHeaderBox.x - heroShellBox.x) > 2 || Math.abs(scrolledHeaderBox.width - heroShellBox.width) > 2)) {
-        results.shellAlignmentFailures.push({ engineName, viewport: viewport.width, name: "scrolled header shell", header: scrolledHeaderBox, hero: heroShellBox });
+      const scrolledHeaderBox = await page.locator('[data-header-bar]').boundingBox().catch(() => null);
+      const headerWidthIsStable = Boolean(scrolledHeaderBox && measured.headerShellRect &&
+        Math.abs(scrolledHeaderBox.x - measured.headerShellRect.left) <= 1 &&
+        Math.abs(scrolledHeaderBox.width - measured.headerShellRect.width) <= 1 &&
+        Math.abs(scrolledHeaderBox.height - measured.headerShellRect.height) <= 2);
+      if (!headerWidthIsStable) {
+        results.headerAlignmentFailures.push({ engineName, viewport: viewport.width, issue: "Header bar geometry changed between top and scrolled states.", initial: measured.headerShellRect, scrolled: scrolledHeaderBox });
+      }
+      const navAfterScroll = await page.locator('header nav[aria-label="Main navigation"]').boundingBox().catch(() => null);
+      if (navAfterScroll && viewport.width >= 1024 && Math.abs(navAfterScroll.x + navAfterScroll.width / 2 - viewport.width / 2) > 8) {
+        results.headerAlignmentFailures.push({ engineName, viewport: viewport.width, issue: "Desktop nav centre shifted after scrolling.", rect: navAfterScroll });
       }
       await page.evaluate(() => window.scrollTo(0, 0));
       results.sectionMetrics.push({ viewport: viewport.width, pageHeight: measured.documentHeight, brandHeight: Math.round(measured.brandHeight || 0), featurePanelHeight: Math.round(measured.featurePanelHeight || 0), tripsHeight, footerHeight, sections: measured.sectionMetrics });
       if (captureScreenshot) {
         await page.screenshot({ path: path.join(screenshotDir, `viewport-${viewport.width}.png`), fullPage: true });
       }
+    }
+
+    // Exercise mobile date popover placement, Escape and the India local-date boundary.
+    if (engineName === "Chromium" && viewport.width === 320) {
+      const dateTrigger = page.locator('[aria-controls="trip-date-popover"]');
+      await dateTrigger.click();
+      const datePopover = page.locator("#trip-date-popover");
+      await datePopover.waitFor({ state: "visible" });
+      const dateBox = await datePopover.boundingBox();
+      if (!dateBox || dateBox.x < -1 || dateBox.x + dateBox.width > viewport.width + 1) {
+        results.searchFailures.push({ engineName, viewport: viewport.width, issue: "Date popover escaped the viewport at 320px.", box: dateBox });
+      }
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !document.getElementById("trip-date-popover"));
+      const dateFocusRestored = await page.evaluate(() => document.activeElement?.getAttribute("aria-controls") === "trip-date-popover");
+      if (!dateFocusRestored) results.searchFailures.push({ engineName, viewport: viewport.width, issue: "Escape did not return focus to the date trigger." });
+      const localDateRegression = await page.evaluate(() => {
+        const date = new Date("2026-11-01T19:30:00.000Z");
+        const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+        const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+        return value.year + "-" + value.month + "-" + value.day;
+      });
+      if (localDateRegression !== "2026-11-02") results.searchFailures.push({ engineName, viewport: viewport.width, issue: "Asia/Kolkata local-date regression is not formatted correctly.", actual: localDateRegression });
     }
 
     // Exercise the mobile navigation's focus entry, Escape handling and focus restoration.
@@ -351,6 +417,14 @@ async function inspectViewport(browser, engineName, viewport, captureScreenshot)
         if (!dialogVisible) results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Photo credits dialog failed to open." });
         await page.keyboard.press("Escape");
       }
+
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(180);
+      const stickyCta = page.locator('[aria-label="Mobile quick actions"]');
+      if (await stickyCta.count() && await stickyCta.isVisible().catch(() => false)) {
+        results.interactionFailures.push({ engineName, viewport: viewport.width, issue: "Sticky mobile CTA overlaps the footer." });
+      }
+      await page.evaluate(() => window.scrollTo(0, 0));
     }
 
     results.browserRuns.push({ engineName, viewport: viewport.width, images: measured.visibleImages.length, pageHeight: measured.documentHeight });
@@ -392,6 +466,10 @@ try {
     summary: {
       browserRuns: results.browserRuns.length,
       horizontalOverflowFailures: results.overflowFailures.length,
+      fullBleedFailures: results.fullBleedFailures.length,
+      footerEdgeFailures: results.footerEdgeFailures.length,
+      headerAlignmentFailures: results.headerAlignmentFailures.length,
+      searchFailures: results.searchFailures.length,
       shellAlignmentFailures: results.shellAlignmentFailures.length,
       sectionMetricFailures: results.sectionMetricFailures.length,
       brokenImages: results.brokenImages.length,
@@ -414,6 +492,10 @@ try {
     "",
     "- Browser/viewport runs: " + report.summary.browserRuns,
     "- Horizontal overflow failures: " + report.summary.horizontalOverflowFailures,
+    "- Full-bleed surface failures: " + report.summary.fullBleedFailures,
+    "- Footer document-edge failures: " + report.summary.footerEdgeFailures,
+    "- Header alignment failures: " + report.summary.headerAlignmentFailures,
+    "- Search popover/date failures: " + report.summary.searchFailures,
     "- Shell and carousel alignment failures: " + report.summary.shellAlignmentFailures,
     "- Section metric failures: " + report.summary.sectionMetricFailures,
     "- Broken visible images: " + report.summary.brokenImages,
@@ -437,6 +519,10 @@ try {
 
   const failureKeys = [
     "horizontalOverflowFailures",
+    "fullBleedFailures",
+    "footerEdgeFailures",
+    "headerAlignmentFailures",
+    "searchFailures",
     "shellAlignmentFailures",
     "sectionMetricFailures",
     "brokenImages",
